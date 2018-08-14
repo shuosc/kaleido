@@ -1,0 +1,11 @@
+syntax = "proto3";
+package IPMirrorStationtableMessages;
+
+message Relation {
+    uint32 ip = 1;
+    uint32 maskBitLength = 2;
+    repeated string url = 3;
+}
+message Table {
+    repeated Relation relations = 1;
+}

@@ -138,3 +138,5 @@ $RECYCLE.BIN/
 *.lnk
 /data/
 /logfile
+.idea
+*.pb.go
