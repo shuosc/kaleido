@@ -1,15 +1,22 @@
 package main
 
 import (
+	"github.com/robfig/cron"
 	"kaleido/Master/Application"
-	_ "kaleido/Master/Domain/Entities/IPRange"
 	"log"
+	"net/http"
 )
 
 func main() {
-	go Application.StartCron()
-	log.Println("Cron started")
-	go Application.StartServer()
-	log.Println("Master booted")
-	select {}
+	Application.CronJob()
+	c := cron.New()
+	c.AddFunc("@every 5s", func() {
+		Application.CronJob()
+		log.Println("Sync with stations success")
+	})
+	c.Start()
+	mux := http.NewServeMux()
+	tableHandler := http.HandlerFunc(Application.GetTableHandler)
+	mux.Handle("/", tableHandler)
+	http.ListenAndServe(":8086", mux)
 }

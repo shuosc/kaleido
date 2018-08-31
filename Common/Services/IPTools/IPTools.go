@@ -27,18 +27,3 @@ func makeMask(maskBitLength uint8) uint32 {
 func MaskIP(ip string, maskBitLength uint8) (masked uint32) {
 	return IPv4ToNumberForm(ip) & makeMask(maskBitLength)
 }
-
-func jhash(arr []uint32) string {
-	var h uint32 = 8388617
-	l := len(arr)
-	for i := 0; i < l; i++ {
-		h = ((h<<1 | h>>30) & 0x7fffffff) ^ arr[i]
-	}
-	return strconv.FormatUint(
-		uint64(h), 36,
-	)
-}
-
-func JHashWithMask(ip string, maskBitLength uint8) string {
-	return jhash([]uint32{MaskIP(ip, maskBitLength), uint32(maskBitLength)})
-}
