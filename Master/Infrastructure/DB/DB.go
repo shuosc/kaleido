@@ -3,12 +3,12 @@ package DB
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
+	"os"
 )
 
 var DB *sql.DB = nil
 
-func initDB(user string, password string) *sql.DB {
-	connStr := "user=" + user + " password=" + password + " dbname=kaleido sslmode=disable"
+func initDB(connStr string) *sql.DB {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
@@ -17,5 +17,5 @@ func initDB(user string, password string) *sql.DB {
 }
 
 func init() {
-	DB = initDB("test", "test123456")
+	DB = initDB(os.Getenv("CONNSTR"))
 }

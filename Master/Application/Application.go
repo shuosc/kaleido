@@ -1,7 +1,6 @@
 package Application
 
 import (
-	"fmt"
 	"kaleido/Common/Services/KaleidoMessage"
 	"kaleido/Master/Domain/Entities/Area"
 	"kaleido/Master/Domain/Entities/IP"
@@ -26,7 +25,6 @@ func CronJob() {
 }
 
 func GetTableHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Host)
 	mutex.RLock()
 	defer mutex.RUnlock()
 	w.Write(message)
