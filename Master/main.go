@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
+	log.Println("Started")
 	Application.CronJob()
 	c := cron.New()
 	c.AddFunc("@every 5s", func() {
-		Application.CronJob()
-		log.Println("Sync with stations success")
+		go Application.CronJob()
 	})
 	c.Start()
 	mux := http.NewServeMux()

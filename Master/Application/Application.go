@@ -1,11 +1,15 @@
 package Application
 
 import (
+	"bytes"
+	"kaleido/Common/Infrastructure/OSS"
 	"kaleido/Common/Services/KaleidoMessage"
 	"kaleido/Master/Domain/Entities/Area"
 	"kaleido/Master/Domain/Entities/IP"
 	"kaleido/Master/Domain/Entities/Mirror"
 	"kaleido/Master/Domain/Entities/MirrorStation"
+	"kaleido/Master/Service/DirtyCheck"
+	"log"
 	"net/http"
 	"sync"
 )
@@ -15,13 +19,25 @@ var message []byte
 var mutex sync.RWMutex
 
 func CronJob() {
+	DirtyCheck.Dirty = false
 	MirrorStation.CronJob()
 	Mirror.CronJob()
-	rawMessage := GenerateMessage()
-	msg, _ := rawMessage.Marshal()
-	mutex.Lock()
-	defer mutex.Unlock()
-	message = msg
+	if DirtyCheck.Dirty {
+		rawMessage := GenerateMessage()
+		msg, _ := rawMessage.Marshal()
+		mutex.Lock()
+		defer mutex.Unlock()
+		message = msg
+		go uploadMessage()
+		log.Println("Sync with stations success")
+	}
+}
+
+func uploadMessage() {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	OSS.Bucket.PutObject("kaleido-message", bytes.NewBuffer(message))
+	log.Println("New message uploaded")
 }
 
 func GetTableHandler(w http.ResponseWriter, r *http.Request) {

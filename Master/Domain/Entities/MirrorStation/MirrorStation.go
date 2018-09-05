@@ -4,20 +4,24 @@ import (
 	_ "database/sql"
 	"encoding/json"
 	"kaleido/Master/Infrastructure/DB"
+	"kaleido/Master/Service/DirtyCheck"
 	"log"
 	"net/http"
+	"sort"
 )
 
 type entity interface {
 	GetUrl() string
 	IsAlive() bool
 	GetMirrorList() []string
+	UpdateMirrorList()
 	CheckAlive()
 }
 
 type mirrorStationBase struct {
-	url   string
-	alive bool
+	url        string
+	alive      bool
+	mirrorList []string
 }
 
 func (station *mirrorStationBase) CheckAlive() {
@@ -27,11 +31,24 @@ func (station *mirrorStationBase) CheckAlive() {
 		// e.g http://mirrors.hust.edu.cn
 		response, err = http.Get(station.url)
 	}
+	lastAlive := station.alive
 	if err != nil || response.StatusCode != 200 {
 		station.alive = false
 	} else {
 		station.alive = true
 	}
+	if station.alive != lastAlive {
+		if station.alive == false {
+			log.Println("Found station", station.url, "dead")
+		} else {
+			log.Println("Found station", station.url, "come back to live")
+		}
+		DirtyCheck.Dirty = true
+	}
+}
+
+func (station mirrorStationBase) GetMirrorList() []string {
+	return station.mirrorList
 }
 
 func (station mirrorStationBase) GetUrl() string {
@@ -60,6 +77,7 @@ func (shuJsonStructure ShuJsonStructure) GetNamesForJson(buffer []byte) []string
 	for index, mirror := range data.Mirrors {
 		result[index] = mirror.Name
 	}
+	sort.Strings(result)
 	return result
 }
 
@@ -75,6 +93,7 @@ func (tunaJsonStructure TunaJsonStructure) GetNamesForJson(buffer []byte) []stri
 	for index, mirror := range data {
 		result[index] = mirror.Name
 	}
+	sort.Strings(result)
 	return result
 }
 
@@ -93,8 +112,9 @@ func init() {
 			case 1:
 				Repo.Entities[id] = &JsonIndexMirrorStation{
 					mirrorStationBase{
-						url:   url,
-						alive: false,
+						url:        url,
+						alive:      false,
+						mirrorList: []string{},
 					},
 					"https://mirrors.shu.edu.cn/data/mirrors.json",
 					ShuJsonStructure{},
@@ -102,8 +122,9 @@ func init() {
 			case 3:
 				Repo.Entities[id] = &JsonIndexMirrorStation{
 					mirrorStationBase{
-						url:   url,
-						alive: false,
+						url:        url,
+						alive:      false,
+						mirrorList: []string{},
 					},
 					"https://mirrors.tuna.tsinghua.edu.cn/static/tunasync.json",
 					TunaJsonStructure{},
@@ -112,24 +133,25 @@ func init() {
 		} else {
 			Repo.Entities[id] = &WebPageIndexMirrorStation{
 				mirrorStationBase{
-					url,
-					false,
+					url:        url,
+					alive:      false,
+					mirrorList: []string{},
 				},
 				selector,
 			}
 		}
 	}
-	CronJob()
 	log.Println("MirrorStation inited")
 }
 
 func CronJob() {
 	ch := make(chan int, len(Repo.Entities))
-	for _, entity := range Repo.Entities {
-		go func(ch chan int) {
+	for _, e := range Repo.Entities {
+		go func(entity entity) {
 			entity.CheckAlive()
+			entity.UpdateMirrorList()
 			ch <- 1
-		}(ch)
+		}(e)
 	}
 	for range Repo.Entities {
 		<-ch

@@ -23,7 +23,8 @@ func (ipEntity ip) GetMaskBitLength() uint8 {
 }
 
 func (ipEntity ip) GetAddressNumberForm() uint32 {
-	return IPTools.IPv4ToNumberForm(ipEntity.address)
+	result, _ := IPTools.IPv4ToNumberForm(ipEntity.address)
+	return result
 }
 
 func (ipEntity ip) GetAreaId() uint32 {

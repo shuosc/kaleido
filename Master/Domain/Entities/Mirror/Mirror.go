@@ -62,7 +62,7 @@ func CronJob() {
 	for stationId, station := range MirrorStation.Repo.Entities {
 		if station.IsAlive() {
 			for _, mirrorName := range station.GetMirrorList() {
-				if _, has := Repo.Entities[mirrorName]; !has {
+				if mirror, has := Repo.Entities[mirrorName]; !has || mirror == nil {
 					Repo.Entities[mirrorName] = Mirror{
 						stationId,
 						map[uint32]bool{},

@@ -140,3 +140,5 @@ $RECYCLE.BIN/
 /logfile
 .idea
 *.pb.go
+/Node/Node
+/Master/Master
