@@ -260,8 +260,12 @@ func (mirrorStation *jsonIndexMirrorStation) Check() bool {
 func (mirrorStation jsonIndexMirrorStation) GetJsonUrl() (string, error) {
 	var url string
 	row := infrastructure.DB.QueryRow(`
-	select concat(url,jsonurl) from mirrorstation where id=$1;
-	`, mirrorStation.Id)
+		select case
+         when substr(jsonurl, 1, 4) = 'http' then jsonurl
+         else concat(url, jsonurl)
+           end
+	from mirrorstation
+	where id = $1;`, mirrorStation.Id)
 	err := row.Scan(&url)
 	return url, err
 }
