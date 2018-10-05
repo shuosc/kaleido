@@ -1,9 +1,9 @@
 syntax = "proto3";
 package KaleidoMessage;
 
-message IP_Area {
+message Address_AreaId {
     // IP.Address -> IP.AreaId
-    map<uint32, uint32> IPs = 1;
+    map<uint32, uint32> Address_AreaId = 1;
 }
 
 message MirrorStationGroup {
@@ -12,8 +12,7 @@ message MirrorStationGroup {
 
 message Mirror {
     uint32 DefaultMirrorStationId = 1;
-    // Area.id -> MirrorStation.id
-    map<uint32, MirrorStationGroup> AreaToMirrorStationTable = 2;
+    map<uint32, MirrorStationGroup> AreaId_MirrorStationGroup = 2;
 }
 
 // usage:
@@ -26,7 +25,7 @@ message KaleidoMessage {
     // Mirror.name -> Mirror
     map<string, Mirror> Mirrors = 1;
     // IP.maskBitLength -> IP_Area
-    map<uint32, IP_Area> IPGroups = 2;
+    map<uint32, Address_AreaId> Mask_Address_AreaID = 2;
     // MirrorStation.id -> MirrorStation.URL
-    map<uint32, string> MirrorStationUrl = 3;
+    map<uint32, string> MirrorStationId_Url = 3;
 }

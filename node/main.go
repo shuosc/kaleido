@@ -5,9 +5,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/robfig/cron"
 	"io/ioutil"
-	"kaleido/Common/Infrastructure/OSS"
-	"kaleido/Common/Services/IPTools"
-	"kaleido/Common/Services/KaleidoMessage"
+	"kaleido/common/infrastructure"
+	"kaleido/common/service"
+	"kaleido/common/service/message"
 	"log"
 	"net/http"
 	"strings"
@@ -23,7 +23,7 @@ var mutex sync.RWMutex
 var spinNum uint32
 
 func fetchTable() {
-	props, err := OSS.Bucket.GetObjectMeta("kaleido-message")
+	props, err := infrastructure.Bucket.GetObjectMeta("kaleido-message-v2")
 	if err != nil {
 		fmt.Println("Fetch Failed", err)
 		return
@@ -32,7 +32,7 @@ func fetchTable() {
 	if newUpdateTime != lastUpdateTime {
 		lastUpdateTime = newUpdateTime
 		fmt.Println(newUpdateTime)
-		object, _ := OSS.Bucket.GetObject("kaleido-message")
+		object, _ := infrastructure.Bucket.GetObject("kaleido-message-v2")
 		buffer, _ := ioutil.ReadAll(object)
 		newMessage := KaleidoMessage.KaleidoMessage{}
 		proto.Unmarshal(buffer, &newMessage)
@@ -46,26 +46,23 @@ func fetchTable() {
 func GetRedirectToStation(mirror string, ip string) string {
 	mutex.RLock()
 	defer mutex.RUnlock()
-	table := message.Mirrors[mirror].AreaToMirrorStationTable
+	table := message.Mirrors[mirror].AreaId_MirrorStationGroup
+	ipNumberForm := service.IPv4ToNumberForm(ip)
 	for mask := 32; mask >= 0; mask-- {
-		ipNumberForm, err := IPTools.IPv4ToNumberForm(ip)
-		if err != nil {
-			break
-		}
-		masked := IPTools.MaskIP(ipNumberForm, uint8(mask))
-		if ipGroup, ok := message.IPGroups[uint32(mask)]; ok {
-			if areaId, ok := ipGroup.IPs[masked]; ok {
+		masked := service.MaskIP(ipNumberForm, uint8(mask))
+		if addressAreaID, ok := message.Mask_Address_AreaID[uint32(mask)]; ok {
+			if areaId, ok := addressAreaID.Address_AreaId[masked]; ok {
 				if areaId == 0 {
 					break
 				}
 				mirrorStationIdGroup := table[areaId].Stations
 				mirrorStationId := mirrorStationIdGroup[spinNum%uint32(len(mirrorStationIdGroup))]
 				spinNum++
-				return message.MirrorStationUrl[mirrorStationId]
+				return message.MirrorStationId_Url[mirrorStationId]
 			}
 		}
 	}
-	return message.MirrorStationUrl[message.Mirrors[mirror].DefaultMirrorStationId]
+	return message.MirrorStationId_Url[message.Mirrors[mirror].DefaultMirrorStationId]
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -1,4 +1,4 @@
-package OSS
+package infrastructure
 
 import (
 	"fmt"

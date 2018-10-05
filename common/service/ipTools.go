@@ -1,23 +1,19 @@
-package IPTools
+package service
 
 import (
-	"net"
 	"strconv"
 	"strings"
 )
 
-func IPv4ToNumberForm(ipv4 string) (uint32, error) {
+func IPv4ToNumberForm(ipv4 string) uint32 {
 	splitResult := strings.Split(ipv4, ".")
 	var numberForm uint32 = 0
 	for _, s := range splitResult {
-		num, err := strconv.ParseUint(s, 10, 32)
-		if err != nil {
-			return 0, &net.AddrError{Err: "Not a valid ipv4 Address", Addr: ipv4}
-		}
+		num, _ := strconv.ParseUint(s, 10, 32)
 		numberForm <<= 8
 		numberForm |= uint32(num)
 	}
-	return numberForm, nil
+	return numberForm
 }
 
 func makeMask(maskBitLength uint8) uint32 {
