@@ -78,7 +78,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	c := cron.New()
-	c.AddFunc("@every 5s", func() {
+	c.AddFunc("@every 10s", func() {
 		go fetchTable()
 	})
 	c.Start()
