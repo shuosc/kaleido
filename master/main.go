@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"kaleido/common/infrastructure"
 	"kaleido/master/model"
+	"kaleido/master/service/api"
 	"kaleido/master/service/makeMessage"
+	"log"
+	"net/http"
 	"time"
 )
 
@@ -47,5 +50,12 @@ func main() {
 			}
 		}
 	}(makeMessageRequest)
+	http.HandleFunc("/api/mirror_stations", api.MirrorStationList)
+	http.HandleFunc("/api/mirrors", api.MirrorList)
+	http.HandleFunc("/api/mirror_station", api.MirrorStation)
+	http.HandleFunc("/api/mirror", api.Mirror)
+
+	log.Fatal(http.ListenAndServe(":8086", nil))
+
 	select {}
 }

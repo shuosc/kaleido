@@ -66,7 +66,7 @@ func GetRedirectToStation(mirror string, ip string) string {
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	from := strings.Split(r.RemoteAddr, ":")[0]
+	from := r.Header["Remote_addr"][0]
 	if r.Header.Get("force-redirect-ip") != "" {
 		from = r.Header.Get("force-redirect-ip")
 	}

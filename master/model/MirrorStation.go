@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
 	"kaleido/common/model"
@@ -16,15 +15,20 @@ import (
 type MirrorSupplier interface {
 	Check() bool
 	GetName() (string, error)
+	GetId() uint64
 }
 
-type mirrorStation struct {
+type MirrorStation struct {
 	model.Entity
-	wasAlive      bool
+	WasAlive      bool
 	oldMirrorList []string
 }
 
-func (mirrorStation mirrorStation) GetName() (string, error) {
+func (mirrorStation MirrorStation) GetId() uint64 {
+	return mirrorStation.Id
+}
+
+func (mirrorStation MirrorStation) GetName() (string, error) {
 	row := infrastructure.DB.QueryRow(`
 	select name from mirrorstation where id=$1
 	`, mirrorStation.Id)
@@ -33,7 +37,7 @@ func (mirrorStation mirrorStation) GetName() (string, error) {
 	return result, err
 }
 
-func (mirrorStation mirrorStation) GetUrl() (string, error) {
+func (mirrorStation MirrorStation) GetUrl() (string, error) {
 	row := infrastructure.DB.QueryRow(`
 	select url from mirrorstation where id=$1
 	`, mirrorStation.Id)
@@ -42,7 +46,7 @@ func (mirrorStation mirrorStation) GetUrl() (string, error) {
 	return result, err
 }
 
-func (mirrorStation mirrorStation) SetAlive(value bool) error {
+func (mirrorStation MirrorStation) SetAlive(value bool) error {
 	_, err := infrastructure.DB.Exec(`
 	update mirrorstation
 	set alive=$1
@@ -51,7 +55,16 @@ func (mirrorStation mirrorStation) SetAlive(value bool) error {
 	return err
 }
 
-func (mirrorStation mirrorStation) ContainsMirror(mirrorId uint64) bool {
+func (mirrorStation MirrorStation) IsAlive() (bool, error) {
+	row := infrastructure.DB.QueryRow(`
+	select alive from mirrorstation where id=$1
+	`, mirrorStation.Id)
+	var result bool
+	err := row.Scan(&result)
+	return result, err
+}
+
+func (mirrorStation MirrorStation) ContainsMirror(mirrorId uint64) bool {
 	row := infrastructure.DB.QueryRow(`
 		select exists(
 			select from mirrorstation_mirror
@@ -62,7 +75,26 @@ func (mirrorStation mirrorStation) ContainsMirror(mirrorId uint64) bool {
 	return exists
 }
 
-func (mirrorStation mirrorStation) addMirror(mirrorName string, tx *sql.Tx) {
+func (mirrorStation MirrorStation) GetMirrors() ([]Mirror, error) {
+	rows, err := infrastructure.DB.Query(`
+	select mirror_id from mirrorstation_mirror where mirrorstation_id=$1 order by mirror_id;
+	`, mirrorStation.Id)
+	if err != nil {
+		return nil, err
+	}
+	var result []Mirror
+	for rows.Next() {
+		mirror := Mirror{}
+		err := rows.Scan(&mirror.Id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, mirror)
+	}
+	return result, nil
+}
+
+func (mirrorStation MirrorStation) addMirror(mirrorName string) {
 	var mirrorId uint64
 	row := infrastructure.DB.QueryRow(`
 		select id 
@@ -77,12 +109,12 @@ func (mirrorStation mirrorStation) addMirror(mirrorName string, tx *sql.Tx) {
 			`, mirrorName)
 		row.Scan(&mirrorId)
 	}
-	tx.Exec(`
+	_, err = infrastructure.DB.Exec(`
 		insert into mirrorstation_mirror (mirrorstation_id, mirror_id) values ($1,$2);
 		`, mirrorStation.Id, mirrorId)
 }
 
-func (mirrorStation mirrorStation) isMirrorIgnored(name string) bool {
+func (mirrorStation MirrorStation) isMirrorIgnored(name string) bool {
 	var result bool
 	row := infrastructure.DB.QueryRow(`
 	select exists(
@@ -95,7 +127,7 @@ func (mirrorStation mirrorStation) isMirrorIgnored(name string) bool {
 }
 
 type webIndexMirrorStation struct {
-	mirrorStation
+	MirrorStation
 }
 
 func (mirrorStation webIndexMirrorStation) GetSelector() (string, error) {
@@ -108,23 +140,20 @@ func (mirrorStation webIndexMirrorStation) GetSelector() (string, error) {
 }
 
 func (mirrorStation *webIndexMirrorStation) Check() bool {
-	tx, _ := infrastructure.DB.Begin()
-	tx.Exec(`
+	infrastructure.DB.Exec(`
 	delete from mirrorstation_mirror where mirrorstation_id=$1;
 	`, mirrorStation.Id)
 	url, err := mirrorStation.GetUrl()
 	if err != nil {
 		log.Fatal("DB connection lost!")
-		tx.Commit()
 		return false
 	}
 	response, err := http.Get(url)
 	if err != nil || response.StatusCode != 200 {
 		log.Println("Failed to fetch MirrorListUrl from ", url)
 		mirrorStation.SetAlive(false)
-		tx.Commit()
-		if mirrorStation.wasAlive {
-			mirrorStation.wasAlive = false
+		if mirrorStation.WasAlive {
+			mirrorStation.WasAlive = false
 			return true
 		}
 		return false
@@ -133,9 +162,8 @@ func (mirrorStation *webIndexMirrorStation) Check() bool {
 	if err != nil {
 		log.Println("Failed to fetch MirrorListUrl from ", url)
 		mirrorStation.SetAlive(false)
-		tx.Commit()
-		if mirrorStation.wasAlive {
-			mirrorStation.wasAlive = false
+		if mirrorStation.WasAlive {
+			mirrorStation.WasAlive = false
 			return true
 		}
 		return false
@@ -143,11 +171,10 @@ func (mirrorStation *webIndexMirrorStation) Check() bool {
 	selector, err := mirrorStation.GetSelector()
 	if err != nil {
 		log.Fatal("DB connection lost!")
-		tx.Commit()
 		return false
 	}
-	changed := !mirrorStation.wasAlive
-	mirrorStation.wasAlive = true
+	changed := !mirrorStation.WasAlive
+	mirrorStation.WasAlive = true
 	mirrorStation.SetAlive(true)
 	var newMirrorList []string
 	pageDoc.Find(selector).Each(
@@ -161,7 +188,7 @@ func (mirrorStation *webIndexMirrorStation) Check() bool {
 				mirrorName = result[len(result)-1]
 			}
 			if !mirrorStation.isMirrorIgnored(mirrorName) {
-				mirrorStation.addMirror(mirrorName, tx)
+				mirrorStation.addMirror(mirrorName)
 				newMirrorList = append(newMirrorList, mirrorName)
 			}
 		})
@@ -177,7 +204,6 @@ func (mirrorStation *webIndexMirrorStation) Check() bool {
 		}
 	}
 	mirrorStation.oldMirrorList = newMirrorList
-	tx.Commit()
 	if changed {
 		log.Println("Find change in ", url)
 		return true
@@ -189,7 +215,7 @@ type mirrorStationRepo struct {
 }
 
 type jsonIndexMirrorStation struct {
-	mirrorStation
+	MirrorStation
 }
 
 func (mirrorStation *jsonIndexMirrorStation) Check() bool {
@@ -208,8 +234,8 @@ func (mirrorStation *jsonIndexMirrorStation) Check() bool {
 		log.Println("Failed to fetch MirrorListUrl from ", url)
 		mirrorStation.SetAlive(false)
 		tx.Commit()
-		if mirrorStation.wasAlive {
-			mirrorStation.wasAlive = false
+		if mirrorStation.WasAlive {
+			mirrorStation.WasAlive = false
 			return true
 		}
 		return false
@@ -219,21 +245,21 @@ func (mirrorStation *jsonIndexMirrorStation) Check() bool {
 		log.Println("Failed to fetch MirrorListUrl from ", url)
 		mirrorStation.SetAlive(false)
 		tx.Commit()
-		if mirrorStation.wasAlive {
-			mirrorStation.wasAlive = false
+		if mirrorStation.WasAlive {
+			mirrorStation.WasAlive = false
 			return true
 		}
 		return false
 	}
-	changed := !mirrorStation.wasAlive
-	mirrorStation.wasAlive = true
+	changed := !mirrorStation.WasAlive
+	mirrorStation.WasAlive = true
 	mirrorStation.SetAlive(true)
 	expression := regexp.MustCompile(`"name":\s*"(\S+?)"`)
 	matches := expression.FindAllStringSubmatch(string(body), -1)
 	var newMirrorList []string
 	for _, match := range matches {
 		if !mirrorStation.isMirrorIgnored(match[1]) {
-			mirrorStation.addMirror(match[1], tx)
+			mirrorStation.addMirror(match[1])
 			newMirrorList = append(newMirrorList, match[1])
 		}
 	}
@@ -278,7 +304,7 @@ func (repo mirrorStationRepo) GetAll() []MirrorSupplier {
 	for rows.Next() {
 		var id uint64
 		rows.Scan(&id)
-		result = append(result, &webIndexMirrorStation{mirrorStation{
+		result = append(result, &webIndexMirrorStation{MirrorStation{
 			model.Entity{Id: id},
 			false,
 			[]string{},
@@ -290,7 +316,7 @@ func (repo mirrorStationRepo) GetAll() []MirrorSupplier {
 	for rows.Next() {
 		var id uint64
 		rows.Scan(&id)
-		result = append(result, &jsonIndexMirrorStation{mirrorStation{
+		result = append(result, &jsonIndexMirrorStation{MirrorStation{
 			model.Entity{Id: id},
 			false,
 			[]string{},

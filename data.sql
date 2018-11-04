@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.4
--- Dumped by pg_dump version 10.4
+-- Dumped from database version 10.5
+-- Dumped by pg_dump version 10.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,28 +24,28 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE public.area (
-    id   bigint                NOT NULL,
-    name character varying(32) NOT NULL,
-    isp  character varying(32)
+  id   bigint                NOT NULL,
+  name character varying(32) NOT NULL,
+  isp  character varying(32)
 );
 
 
 ALTER TABLE public.area
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: area_area; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.area_area (
-    from_id  bigint NOT NULL,
-    to_id    bigint NOT NULL,
-    distance bigint NOT NULL
+  from_id  bigint NOT NULL,
+  to_id    bigint NOT NULL,
+  distance bigint NOT NULL
 );
 
 
 ALTER TABLE public.area_area
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: area_id_seq; Type: SEQUENCE; Schema: public; Owner: test
@@ -60,40 +60,41 @@ CREATE SEQUENCE public.area_id_seq
 
 
 ALTER TABLE public.area_id_seq
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: area_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
 --
 
 ALTER SEQUENCE public.area_id_seq
-    OWNED BY public.area.id;
+  OWNED BY public.area.id;
+
 
 --
 -- Name: iprange; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.iprange (
-    id bigint NOT NULL,
-    ip cidr   NOT NULL
+  id bigint NOT NULL,
+  ip cidr   NOT NULL
 );
 
 
 ALTER TABLE public.iprange
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: iprange_area; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.iprange_area (
-    iprange_id bigint NOT NULL,
-    area_id    bigint NOT NULL
+  iprange_id bigint NOT NULL,
+  area_id    bigint NOT NULL
 );
 
 
 ALTER TABLE public.iprange_area
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: iprange_id_seq; Type: SEQUENCE; Schema: public; Owner: test
@@ -108,27 +109,28 @@ CREATE SEQUENCE public.iprange_id_seq
 
 
 ALTER TABLE public.iprange_id_seq
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: iprange_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
 --
 
 ALTER SEQUENCE public.iprange_id_seq
-    OWNED BY public.iprange.id;
+  OWNED BY public.iprange.id;
+
 
 --
 -- Name: mirror; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.mirror (
-    id   bigint                NOT NULL,
-    name character varying(64) NOT NULL
+  id   bigint                NOT NULL,
+  name character varying(64) NOT NULL
 );
 
 
 ALTER TABLE public.mirror
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirror_id_seq; Type: SEQUENCE; Schema: public; Owner: test
@@ -143,57 +145,57 @@ CREATE SEQUENCE public.mirror_id_seq
 
 
 ALTER TABLE public.mirror_id_seq
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirror_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
 --
 
 ALTER SEQUENCE public.mirror_id_seq
-    OWNED BY public.mirror.id;
+  OWNED BY public.mirror.id;
 
 --
 -- Name: mirrorignore; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.mirrorignore (
-    mirrorstationid bigint                 NOT NULL,
-    mirrorname      character varying(128) NOT NULL
+  mirrorstationid bigint                 NOT NULL,
+  mirrorname      character varying(128) NOT NULL
 );
 
 
 ALTER TABLE public.mirrorignore
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirrorstation; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.mirrorstation (
-    id       bigint                 NOT NULL,
-    name     character varying(32)  NOT NULL,
-    url      character varying(128) NOT NULL,
-    selector character varying(128),
-    jsonurl  character varying(128),
-    alive    boolean DEFAULT false  NOT NULL
+  id       bigint                 NOT NULL,
+  name     character varying(32)  NOT NULL,
+  url      character varying(128) NOT NULL,
+  selector character varying(128),
+  jsonurl  character varying(128),
+  alive    boolean DEFAULT false  NOT NULL
 );
 
 
 ALTER TABLE public.mirrorstation
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirrorstation_area; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.mirrorstation_area (
-    mirrorstation_id bigint NOT NULL,
-    area_id          bigint NOT NULL
+  mirrorstation_id bigint NOT NULL,
+  area_id          bigint NOT NULL
 );
 
 
 ALTER TABLE public.mirrorstation_area
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirrorstation_id_seq; Type: SEQUENCE; Schema: public; Owner: test
@@ -208,55 +210,60 @@ CREATE SEQUENCE public.mirrorstation_id_seq
 
 
 ALTER TABLE public.mirrorstation_id_seq
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: mirrorstation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
 --
 
 ALTER SEQUENCE public.mirrorstation_id_seq
-    OWNED BY public.mirrorstation.id;
+  OWNED BY public.mirrorstation.id;
+
 
 --
 -- Name: mirrorstation_mirror; Type: TABLE; Schema: public; Owner: test
 --
 
 CREATE TABLE public.mirrorstation_mirror (
-    mirrorstation_id bigint NOT NULL,
-    mirror_id        bigint NOT NULL
+  mirrorstation_id bigint NOT NULL,
+  mirror_id        bigint NOT NULL
 );
 
 
 ALTER TABLE public.mirrorstation_mirror
-    OWNER TO test;
+  OWNER TO test;
 
 --
 -- Name: area id; Type: DEFAULT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.area
-    ALTER COLUMN id SET DEFAULT nextval('public.area_id_seq' :: regclass);
+  ALTER COLUMN id SET DEFAULT nextval('public.area_id_seq' :: regclass);
+
 
 --
 -- Name: iprange id; Type: DEFAULT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.iprange
-    ALTER COLUMN id SET DEFAULT nextval('public.iprange_id_seq' :: regclass);
+  ALTER COLUMN id SET DEFAULT nextval('public.iprange_id_seq' :: regclass);
+
 
 --
 -- Name: mirror id; Type: DEFAULT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirror
-    ALTER COLUMN id SET DEFAULT nextval('public.mirror_id_seq' :: regclass);
+  ALTER COLUMN id SET DEFAULT nextval('public.mirror_id_seq' :: regclass);
+
 
 --
 -- Name: mirrorstation id; Type: DEFAULT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorstation
-    ALTER COLUMN id SET DEFAULT nextval('public.mirrorstation_id_seq' :: regclass);
+  ALTER COLUMN id SET DEFAULT nextval('public.mirrorstation_id_seq' :: regclass);
+
 
 --
 -- Data for Name: area; Type: TABLE DATA; Schema: public; Owner: test
@@ -30101,248 +30108,266 @@ COPY public.iprange_area (iprange_id, area_id) FROM stdin;
 --
 
 COPY public.mirror (id, name) FROM stdin;
-327	CPAN
-328	CTAN
-329	apache
-330	archlinux
-331	archlinux-arm
-332	centos
-333	debian-cd
-334	eclipse
-335	epel
-336	gnu
-337	kali-images
-338	kali-security
-339	linuxmint
-340	opensuse
-341	rpmfusion
-342	ubuntu
-343	ubuntu-releases
-344	cygwin
-345	sagemath
-346	deepin-releases
-347	packman
-348	deepin
-349	turnkeylinux
-350	rubygems
-351	qtproject
-352	jenkins
-353	elpa
-354	vim
-355	postgresql
-356	msys2
-357	macports
-358	virtualbox
-359	moodle
-360	pentaho
-361	debian
-362	deepin-cd
-363	gentoo
-364	gentoo-portage
-365	grml
-366	knoppix
-367	knoppix-dvd
-368	oracle-linux
-369	ubuntu-dvd
-370	ubuntu-cdimage
-371	docker-ce
-372	Linux-HOWTO
-373	fedora
-374	csw
-375	alpine
-376	gitlab-ce
-377	hackage
-378	anaconda
-379	homebrew-bottles
-380	anthon
-381	julia
-382	kali
-383	archlinuxarm
-384	archlinuxcn
-385	antergos
-386	manjaro
-387	caffe
-388	aosp
-389	neurodebian
-390	npm
-391	aosp-monthly
-392	debian-security
-393	openwrt
-394	pythonxy
-395	archive.raspberrypi.org
-396	pypi
-397	CRAN
-398	qubes
-399	bioc
-400	raspbian
-401	bjlx
-402	blackarch
-403	rfc
-404	brew.git
-405	stackage
-406	kernel
-407	centos-altarch
-408	iso
-409	centos-cloud
-410	ceph
-411	current
-412	chakra
-413	ros
-414	clojars
-415	releases
-416	cloveros
-417	distribution
-418	html
-419	crates.io-index
-420	linuxmint-cd
-421	tensorflow
-422	logs
-423	ctex
-424	ubuntu-ports
-425	mageia
-426	deb-multimedia
-427	debian-cdimage
-428	debiancn
-429	openvz
-430	pub
-431	dotdeb
-432	remi
-433	elrepo
-434	scientific
-435	sites
-436	fedora-altarch
-437	ubuntu-cd
-438	fink
-439	freebsd
-440	freebsd-pkg
-441	freebsd-ports
-442	gimp
-443	gmt
-444	gnome
-445	atomic
-446	repoforge
-447	lfs
-448	golang
-449	rpi-firmware
-450	rpi-kernel
-451	homebrew-cask.git
-452	homebrew-core.git
-453	cpan
-454	influxdata
-455	ius
-456	putty
-457	videolan
-458	kde
-459	android
-460	kde-application
-461	ldp
-462	kernel.org
-463	kubernetes
-464	lede
-465	AOSP
-466	lineageos
-467	linux.git
-468	CocoaPods
-469	loongson
-470	ELK
-471	HHVM
-472	loongson2f
-473	NetBSD
-474	OpenBSD
-475	adobe-fonts
-476	manjaro-arm
-477	manjaro-cd
-478	mariadb
-479	monitoring-plugins
-480	mysql-ftp
-481	arch4edu
-482	mysql-repo
-483	nginx
-484	artixlinux
-485	node
-486	bananian
-487	nodesource
-488	bioconductor
-489	openelec
-490	openresty
-492	centos-vault
-493	parrot
-494	percona
-496	proxmox
-495	chakra-releases
-497	chromiumos
-499	debian-multimedia
-501	ruby
-502	dell
-503	salt
-506	elasticstack
-514	flightgear
-516	fzug
-517	gentoo-portage-prefix
-518	ubuntu-cloud-images
-519	ubuntu-old-releases
-523	gitlab-ee
-530	iina
-532	libreoffice
-534	lineageOS
-536	linux-stable.git
-538	lxc-images
-540	mysql
-542	openthos-src
-544	osdn
-546	pkgsrc
-548	qt
-550	redhat
-552	saltstack
-554	solus
-556	winehq
-559	lyx
-561	vscode
-563	hbcd
-565	zerotier
-567	brew
-569	RFCs
-498	puppy
-500	debian-nonfree
-504	scientificlinux
-505	slackware
-507	steamos
-508	elvish
-509	tdf
-510	termux
-511	erlang-solutions
-512	tldp
-513	trisquel
-515	trisquel-images
-520	git-repo
-521	gitlab-ci-multi-runner
-522	videolan-ftp
-524	gitlab-runner
-525	wine
-526	xbmc
-527	grafana
-528	Xorg
-529	homebrew
-531	kodi
-533	lineage-rom
-535	linux-next.git
-537	llvm
-539	mongodb
-541	nodejs-release
-543	openthos
-545	osmc
-547	pybombs
-549	raspberrypi
-551	repo-ck
-553	slackwarearm
-555	tinycorelinux
-557	zabbix
-558	opnsense
-560	virtio
-562	kaoslinux
-564	pritunl
-566	homebrew-core
-568	homebrew-cask
+1344	archlinux
+1345	archlinux-cn
+1346	archlinuxarm
+1347	centos
+1348	ceph
+1349	cpan
+1350	cygwin
+1351	debian
+1352	debian-archive
+1353	debian-backports
+1354	debian-cd
+1355	debian-security
+1356	deepin
+1357	deepin-cd
+1358	elastic
+1359	elpa
+1360	fedora
+1361	freebsd
+1362	gentoo
+1363	gentoo-portage
+1364	kernel
+1365	linuxmint
+1366	maven
+1367	mysql
+1368	mysql_debian
+1369	nginx
+1370	openSUSE
+1371	pypi
+1372	rpmfusion
+1373	slackware
+1374	tinycorelinux
+1375	ubuntu
+1376	ubuntu-releases
+1377	AOSP
+1378	CPAN
+1379	CRAN
+1380	CTAN
+1381	CocoaPods
+1382	ELK
+1383	HHVM
+1384	NetBSD
+1385	OpenBSD
+1386	adobe-fonts
+1387	alpine
+1388	anaconda
+1389	antergos
+1390	anthon
+1391	aosp-monthly
+1392	apache
+1393	arch4edu
+1394	archlinuxcn
+1395	artixlinux
+1396	bananian
+1397	bioconductor
+1398	bjlx
+1399	blackarch
+1400	centos-altarch
+1401	centos-vault
+1402	chakra-releases
+1403	chakra
+1404	chromiumos
+1405	clojars
+1406	ctex
+1407	debian-multimedia
+1408	debian-nonfree
+1409	dell
+1410	docker-ce
+1411	dotdeb
+1412	eclipse
+1413	elasticstack
+1414	elrepo
+1415	elvish
+1416	epel
+1417	erlang-solutions
+1418	fedora-altarch
+1419	flightgear
+1420	fzug
+1421	gentoo-portage-prefix
+1422	git-repo
+1423	gitlab-ce
+1424	gitlab-ci-multi-runner
+1425	gitlab-ee
+1426	gitlab-runner
+1427	gnu
+1428	grafana
+1429	hackage
+1430	homebrew-bottles
+1431	homebrew
+1432	iina
+1433	influxdata
+1434	ius
+1435	jenkins
+1436	kali-images
+1437	kali-security
+1438	kali
+1439	kodi
+1440	lede
+1441	libreoffice
+1442	lineage-rom
+1443	lineageOS
+1444	linux-next.git
+1445	linux-stable.git
+1446	linux.git
+1447	linuxmint-cd
+1448	llvm
+1449	loongson
+1450	lxc-images
+1451	macports
+1452	mageia
+1453	manjaro-cd
+1454	manjaro
+1455	mariadb
+1456	mongodb
+1457	msys2
+1458	neurodebian
+1459	nodejs-release
+1460	nodesource
+1461	openresty
+1462	opensuse
+1463	openthos-src
+1464	openthos
+1465	openwrt
+1466	osdn
+1467	osmc
+1468	packman
+1469	parrot
+1470	percona
+1471	pkgsrc
+1472	postgresql
+1473	puppy
+1474	pybombs
+1475	qt
+1476	raspberrypi
+1477	raspbian
+1478	redhat
+1479	remi
+1480	repo-ck
+1481	repoforge
+1482	ros
+1483	rubygems
+1484	sagemath
+1485	saltstack
+1486	slackwarearm
+1487	solus
+1488	stackage
+1489	steamos
+1490	tensorflow
+1491	termux
+1492	ubuntu-cdimage
+1493	ubuntu-cloud-images
+1494	ubuntu-ports
+1495	videolan-ftp
+1496	virtualbox
+1497	winehq
+1498	zabbix
+1499	archlinux-arm
+1500	deepin-releases
+1501	turnkeylinux
+1502	qtproject
+1503	vim
+1504	moodle
+1505	pentaho
+1506	grml
+1507	knoppix
+1508	knoppix-dvd
+1509	oracle-linux
+1510	ubuntu-dvd
+1513	pouch
+1511	scientificlinux
+1512	sabayonlinux
+1520	AliOSThings
+1523	archive.raspberrypi.org
+1525	brew.git
+1527	cloveros
+1529	deb-multimedia
+1531	debiancn
+1533	freebsd-pkg
+1535	gimp
+1537	gnome
+1539	homebrew-cask.git
+1541	kde
+1543	kernel.org
+1545	lineageos
+1547	manjaro-arm
+1549	mysql-ftp
+1551	node
+1553	openvz
+1555	pythonxy
+1557	ruby
+1559	tdf
+1561	trisquel
+1563	ubuntu-old-releases
+1565	xbmc
+1588	rpi-firmware
+1590	videolan
+1592	ldp
+1594	csw
+1595	html
+1597	pub
+1599	sites
+1514	Alibaba
+1515	docker-toolbox
+1516	kubernetes
+1517	linux-kernel
+1518	alicloud-salt
+1519	AliOS-Things
+1521	nvidia-cuda
+1522	aosp
+1524	bioc
+1526	centos-cloud
+1528	crates.io-index
+1530	debian-cdimage
+1532	fink
+1534	freebsd-ports
+1536	gmt
+1538	golang
+1540	homebrew-core.git
+1542	kde-application
+1544	lfs
+1546	loongson2f
+1548	monitoring-plugins
+1550	mysql-repo
+1552	openelec
+1554	proxmox
+1556	rfc
+1558	salt
+1560	tldp
+1562	trisquel-images
+1564	wine
+1566	Xorg
+1567	julia
+1568	npm
+1569	qubes
+1570	iso
+1571	current
+1572	releases
+1573	distribution
+1574	opnsense
+1575	lyx
+1576	virtio
+1577	vscode
+1578	kaoslinux
+1579	hbcd
+1580	pritunl
+1581	zerotier
+1582	homebrew-core
+1583	brew
+1584	homebrew-cask
+1585	RFCs
+1586	putty
+1587	atomic
+1589	rpi-kernel
+1591	android
+1593	Linux-HOWTO
+1596	logs
+1598	scientific
+1600	ubuntu-cd
+1601	caffe
+1602	git-for-windows
+1603	IssueTracker
 \.
 
 
@@ -30360,6 +30385,15 @@ COPY public.mirrorignore (mirrorstationid, mirrorname) FROM stdin;
 10	Downloads
 10	linux
 2	",
+11	系统
+11	容器
+11	存储
+11	语言
+11	其他
+11	网络
+11	内核
+11	运维
+11	驱动
 \.
 
 
@@ -30368,16 +30402,18 @@ COPY public.mirrorignore (mirrorstationid, mirrorname) FROM stdin;
 --
 
 COPY public.mirrorstation (id, name, url, selector, jsonurl, alive) FROM stdin;
-1	上海大学	https://mirrors.shu.edu.cn	\N	/data/mirrors.json	t
-9	东软信息学院	https://mirrors.neusoft.edu.cn	.container section .table-mirror tbody td:first-of-type a	\N	t
-3	中国科技大学	https://mirrors.ustc.edu.cn	#filelist .filelist td.filename a	\N	t
-10	北京理工大学	http://mirror.bit.edu.cn	ul>li>a:first-of-type	\N	t
-5	上海科技大学	https://mirrors.geekpie.club	.indexcolicon a	\N	t
-8	华中科技大学	http://mirrors.hust.edu.cn	#mirror-tbody tr td:first-of-type a	\N	t
-7	兰州大学	https://mirror.lzu.edu.cn	.mirror_item a	\N	t
+11	阿里巴巴	https://mirrors.aliyun.com	\N	https://opsx.alibaba.com/api/v1/repo?_input_charset=utf-8&lang=chs	t
 2	清华大学	https://mirrors.tuna.tsinghua.edu.cn	\N	/static/tunasync.json	t
+1	上海大学	https://mirrors.shu.edu.cn	\N	/data/mirrors.json	t
+7	兰州大学	https://mirror.lzu.edu.cn	.mirror_item a	\N	t
+12	网易	http://mirrors.163.com	#distro-table > tbody > tr td:first-of-type a	\N	t
+8	华中科技大学	http://mirrors.hust.edu.cn	#mirror-tbody tr td:first-of-type a	\N	t
+10	北京理工大学	http://mirror.bit.edu.cn	ul>li>a:first-of-type	\N	t
+6	浙江大学	https://mirrors.zju.edu.cn	.zju-mirrors-body dl a	\N	t
 4	上海交通大学	https://ftp.sjtu.edu.cn	pre :not(a:first-of-type)	\N	t
-6	浙江大学	https://mirrors.zju.edu.cn	.src-list dl dt a	\N	t
+3	中国科技大学	https://mirrors.ustc.edu.cn	#filelist .filelist td.filename a	\N	t
+5	上海科技大学	https://mirrors.geekpie.club	.indexcolicon a	\N	t
+9	东软信息学院	https://mirrors.neusoft.edu.cn	.container section .table-mirror tbody td:first-of-type a	\N	t
 \.
 
 
@@ -30400,6 +30436,11 @@ COPY public.mirrorstation_area (mirrorstation_id, area_id) FROM stdin;
 8	67
 9	111
 10	85
+11	130
+11	128
+12	44
+12	155
+12	118
 \.
 
 
@@ -30408,528 +30449,657 @@ COPY public.mirrorstation_area (mirrorstation_id, area_id) FROM stdin;
 --
 
 COPY public.mirrorstation_mirror (mirrorstation_id, mirror_id) FROM stdin;
-9	332
-9	335
-9	445
-9	433
-9	446
-9	382
-9	337
-9	400
-9	449
-9	450
-9	343
-9	330
-9	363
-9	364
-9	453
-9	396
-9	350
-9	344
-9	334
-9	456
-9	457
-9	459
-9	461
-8	327
-8	328
-8	329
-8	330
-8	331
-8	332
-8	333
-8	334
-8	335
-8	336
-8	337
-8	338
-8	339
-8	340
-8	341
-8	342
-8	343
-8	344
-8	345
-8	346
-8	347
-8	348
-1	361
-1	552
-1	558
-1	559
-1	560
-1	409
-1	561
-1	562
-1	563
-1	426
-1	343
-1	379
-1	396
-1	485
-1	539
-1	540
-1	564
-1	565
-1	501
-1	371
-1	378
-1	358
-1	330
-1	342
-1	329
-1	332
-1	382
-1	478
-1	355
-1	328
-1	363
-1	340
-1	557
-5	378
-5	380
-5	330
-5	383
-5	384
-5	387
-5	332
-5	327
-5	397
-5	328
-5	344
-5	333
-5	392
-5	361
-5	362
-5	348
-5	379
-5	406
-5	339
-5	356
-5	396
-5	400
-5	413
-5	421
-5	370
-5	424
-5	343
-5	342
-4	372
-4	330
-4	332
-4	374
-4	361
-4	333
-4	392
-4	348
-4	362
-4	373
-4	418
-4	339
-4	420
-4	422
-4	425
-4	340
-4	429
-4	430
-4	432
-4	434
-4	435
-4	342
-4	437
-7	327
-7	397
-7	328
-7	375
-7	380
-7	330
-7	384
-7	402
-7	332
-7	407
-7	344
-7	361
-7	333
-7	392
-7	348
-7	346
-7	433
-7	335
-7	373
-7	439
-7	363
-7	364
-7	336
-7	382
-7	337
-7	406
-7	447
-7	340
-7	396
-7	341
-7	342
-7	343
-3	375
-3	378
-3	385
-3	380
-3	388
-3	391
-3	329
-3	395
-3	330
-3	383
-3	384
-3	399
-3	401
-3	402
-3	404
-3	332
-3	407
-3	409
-3	410
-3	412
-3	414
-3	416
-3	327
-3	397
-3	419
-3	328
-3	423
-3	344
-3	426
-3	361
-3	333
-3	427
-3	392
-3	428
-3	348
-3	362
-3	371
-3	431
-3	334
-3	433
-3	335
-3	373
-3	436
-3	438
-3	439
-3	440
-3	441
-3	363
-3	364
-3	442
-3	443
-3	444
-3	336
-3	448
-3	377
-3	379
-3	451
-3	452
-3	454
-3	455
-3	352
-3	382
-3	337
-3	458
-3	460
-3	462
-3	366
-3	367
-3	463
-3	464
-3	447
-3	466
-3	467
-3	339
-3	420
-3	469
-3	472
-3	357
-3	425
-3	386
-3	476
-3	477
-3	478
-3	479
-3	356
-3	480
-3	482
-3	389
-3	483
-3	485
-3	487
-3	489
-3	490
-3	340
-3	429
-3	347
-3	493
-3	494
-3	355
-3	496
-3	498
-3	396
-3	394
-3	351
-3	400
-3	432
-3	403
-3	413
-3	341
-3	501
-3	350
-3	345
-3	503
-3	504
-3	505
-3	405
-3	507
-3	509
-3	510
-3	512
-3	513
-3	515
-3	349
-3	342
-3	370
-3	518
-3	519
-3	424
-3	343
-3	522
-3	354
-3	525
-3	526
-3	528
-10	329
-10	349
-10	327
-10	328
-10	350
-10	351
-10	334
-10	352
-10	353
-1	397
-1	354
-1	352
-1	333
-1	337
-1	518
-1	370
-1	446
-1	508
-1	522
-1	375
-1	348
-1	362
-1	493
-1	566
-1	567
-1	468
-1	568
-1	327
-1	569
-1	410
-1	344
-1	334
-1	442
-1	336
-1	444
-1	458
-1	406
-1	532
-1	393
-1	456
-1	400
-1	350
-1	530
-1	384
-1	383
-1	339
-1	373
-1	464
-1	335
-1	420
-1	357
-1	356
-1	407
-1	386
-1	380
-1	477
-2	465
-2	327
-2	397
-2	328
-2	468
-2	470
-2	471
-2	473
-2	474
-2	475
-2	375
-2	378
-2	385
-2	380
-2	391
-2	329
-2	481
-2	330
-2	383
-2	384
-2	484
-2	486
-2	488
-2	401
-2	402
-2	407
-2	492
-2	332
-2	410
-2	495
-2	412
-2	497
-2	414
-2	423
-2	344
-2	333
-2	499
-2	500
-2	392
-2	361
-2	362
-2	348
-2	502
-2	371
-2	431
-2	334
-2	506
-2	353
-2	433
-2	508
-2	335
-2	511
-2	436
-2	373
-2	514
-2	516
-2	517
-2	364
-2	363
-2	520
-2	376
-2	521
-2	523
-2	524
-2	336
-2	527
-2	377
-2	379
-2	529
-2	530
-2	454
-2	455
-2	352
-2	337
-2	338
-2	382
-2	406
-2	531
-2	464
-2	532
-2	533
-2	534
-2	535
-2	536
-2	467
-2	420
-2	339
-2	537
-2	469
-2	538
-2	357
-2	425
-2	477
-2	386
-2	478
-2	539
-2	356
-2	540
-2	389
-2	541
-2	487
-2	490
-2	340
-2	542
-2	543
-2	393
-2	544
-2	545
-2	347
-2	493
-2	494
-2	546
-2	355
-2	498
-2	547
-2	396
-2	548
-2	549
-2	400
-2	550
-2	432
-2	551
-2	446
-2	413
-2	341
-2	350
-2	345
-2	552
-2	505
-2	553
-2	554
-2	405
-2	507
-2	421
-2	510
-2	555
-2	370
-2	518
-2	424
-2	343
-2	342
-2	522
-2	358
-2	556
-2	557
-10	354
-10	355
-10	344
-10	356
-10	357
-10	358
-10	359
-10	360
-10	330
-10	332
-10	333
-10	361
-10	348
-10	362
-10	335
-10	363
-10	364
-10	365
-10	366
-10	367
-10	340
-10	368
-10	342
-10	369
-10	343
-10	370
+11	1347
+11	1400
+11	1351
+11	1353
+11	1355
+11	1375
+11	1360
+11	1418
+11	1361
+11	1362
+11	1363
+11	1431
+11	1511
+11	1512
+11	1344
+11	1356
+11	1462
+11	1513
+11	1514
+11	1410
+11	1515
+11	1411
+11	1416
+11	1348
+11	1378
+11	1379
+11	1380
+11	1350
+11	1387
+11	1392
+11	1438
+11	1516
+11	1517
+11	1451
+11	1455
+11	1456
+11	1468
+11	1474
+11	1371
+11	1477
+11	1481
+11	1372
+11	1483
+11	1498
+11	1485
+11	1518
+11	1519
+11	1520
+11	1521
+11	1434
+11	1479
+1	1351
+1	1485
+1	1574
+1	1575
+1	1576
+1	1526
+1	1577
+1	1578
+1	1579
+1	1529
+1	1376
+1	1430
+1	1371
+1	1551
+1	1456
+1	1367
+1	1580
+1	1581
+1	1557
+1	1410
+1	1388
+1	1496
+1	1344
+1	1375
+1	1392
+1	1347
+1	1438
+1	1455
+1	1472
+1	1380
+1	1362
+1	1462
+1	1498
+1	1379
+1	1503
+1	1435
+1	1354
+1	1436
+1	1493
+1	1492
+1	1481
+1	1415
+1	1495
+1	1387
+1	1356
+1	1357
+1	1469
+1	1582
+1	1583
+1	1381
+1	1584
+1	1378
+1	1585
+1	1348
+1	1350
+1	1412
+1	1535
+1	1427
+1	1537
+1	1541
+1	1364
+1	1441
+1	1465
+1	1586
+1	1477
+1	1483
+1	1432
+1	1394
+1	1346
+1	1365
+1	1360
+1	1440
+1	1416
+1	1447
+1	1451
+1	1457
+1	1400
+1	1454
+1	1390
+1	1453
+2	1377
+2	1378
+2	1379
+2	1380
+2	1381
+2	1382
+2	1383
+2	1384
+2	1385
+2	1386
+2	1387
+2	1388
+2	1389
+2	1390
+2	1391
+2	1392
+2	1393
+2	1344
+2	1346
+2	1394
+2	1395
+2	1396
+2	1397
+2	1398
+2	1399
+2	1400
+2	1401
+2	1347
+2	1348
+2	1402
+2	1403
+2	1404
+2	1405
+2	1406
+2	1350
+2	1354
+2	1407
+2	1408
+2	1355
+2	1351
+2	1357
+2	1356
+2	1409
+2	1410
+2	1411
+2	1412
+2	1413
+2	1359
+2	1414
+2	1415
+2	1416
+2	1417
+2	1418
+2	1360
+2	1419
+2	1420
+2	1421
+2	1363
+2	1362
+2	1422
+2	1423
+2	1424
+2	1425
+2	1426
+2	1427
+2	1428
+2	1429
+2	1430
+2	1431
+2	1432
+2	1433
+2	1434
+2	1435
+2	1436
+2	1437
+2	1438
+2	1364
+2	1439
+2	1440
+2	1441
+2	1442
+2	1443
+2	1444
+2	1445
+2	1446
+2	1447
+2	1365
+2	1448
+2	1449
+2	1450
+2	1451
+2	1452
+2	1453
+2	1454
+2	1455
+2	1456
+2	1457
+2	1367
+2	1458
+2	1459
+2	1460
+2	1461
+2	1462
+2	1463
+2	1464
+2	1465
+2	1466
+2	1467
+2	1468
+2	1469
+2	1470
+2	1471
+2	1472
+2	1473
+2	1474
+2	1371
+2	1475
+2	1476
+2	1477
+2	1478
+2	1479
+2	1480
+2	1481
+2	1482
+2	1372
+2	1483
+2	1484
+2	1485
+2	1373
+2	1486
+2	1487
+2	1488
+2	1489
+2	1490
+2	1491
+2	1374
+2	1492
+2	1493
+2	1494
+2	1376
+2	1375
+2	1495
+2	1496
+2	1497
+2	1498
+12	1345
+12	1347
+12	1349
+12	1351
+12	1353
+12	1355
+12	1357
+12	1359
+12	1361
+12	1363
+12	1365
+12	1367
+12	1369
+12	1371
+12	1373
+12	1375
+8	1378
+8	1392
+8	1499
+8	1354
+8	1416
+8	1436
+8	1365
+8	1372
+8	1376
+8	1484
+8	1468
+10	1392
+10	1378
+10	1483
+10	1435
+10	1503
+10	1472
+10	1457
+10	1496
+10	1505
+10	1347
+10	1351
+10	1357
+10	1416
+10	1363
+10	1507
+10	1462
+10	1375
+10	1376
+6	1344
+6	1350
+6	1380
+6	1356
+6	1359
+6	1360
+6	1423
+6	1430
+6	1438
+6	1454
+6	1458
+6	1603
+6	1465
+6	1371
+6	1569
+6	1556
+6	1375
+6	1357
+6	1573
+7	1378
+7	1380
+7	1390
+7	1394
+7	1347
+7	1350
+7	1354
+7	1356
+7	1414
+7	1360
+7	1362
+7	1427
+7	1436
+7	1544
+7	1371
+7	1375
+4	1593
+4	1347
+4	1351
+4	1355
+4	1357
+4	1595
+4	1447
+4	1452
+4	1553
+4	1479
+4	1599
+4	1600
+3	1387
+3	1389
+3	1522
+3	1392
+3	1344
+3	1394
+3	1398
+3	1525
+3	1400
+3	1348
+3	1405
+3	1378
+3	1528
+3	1406
+3	1529
+3	1354
+3	1355
+3	1356
+3	1410
+3	1412
+3	1416
+3	1418
+3	1361
+3	1534
+3	1363
+3	1536
+3	1427
+3	1429
+3	1430
+3	1539
+3	1540
+3	1433
+3	1434
+3	1435
+3	1567
+3	1438
+3	1541
+3	1543
+3	1508
+3	1440
+3	1545
+3	1365
+3	1449
+3	1451
+3	1454
+3	1547
+3	1453
+3	1455
+3	1548
+3	1457
+3	1550
+3	1369
+3	1460
+3	1461
+3	1553
+3	1469
+3	1472
+3	1473
+3	1555
+3	1477
+3	1556
+3	1372
+3	1483
+3	1558
+3	1373
+3	1489
+3	1491
+3	1561
+3	1501
+3	1492
+5	1387
+5	1388
+5	1390
+5	1344
+5	1346
+5	1394
+5	1601
+5	1347
+12	1344
+12	1346
+12	1348
+12	1350
+12	1352
+12	1354
+12	1356
+12	1358
+12	1360
+12	1362
+12	1364
+12	1366
+12	1368
+12	1370
+12	1372
+12	1374
+12	1376
+8	1380
+8	1344
+8	1347
+8	1412
+8	1427
+8	1437
+8	1462
+8	1375
+8	1350
+8	1500
+8	1356
+10	1501
+10	1380
+10	1502
+10	1412
+10	1359
+10	1350
+10	1451
+10	1504
+10	1344
+10	1354
+10	1356
+10	1362
+10	1506
+10	1508
+10	1509
+10	1510
+10	1492
+6	1347
+6	1378
+6	1351
+6	1410
+6	1416
+6	1362
+6	1429
+6	1567
+6	1365
+6	1457
+6	1568
+6	1462
+6	1555
+6	1472
+6	1477
+6	1488
+6	1570
+6	1571
+6	1572
+6	1376
+7	1379
+7	1387
+7	1344
+7	1399
+7	1400
+7	1351
+7	1355
+7	1500
+7	1416
+7	1361
+7	1363
+7	1438
+7	1364
+7	1462
+7	1372
+7	1376
+4	1344
+4	1594
+4	1354
+4	1356
+4	1360
+4	1365
+4	1596
+4	1462
+4	1597
+4	1598
+4	1375
+3	1388
+3	1390
+3	1391
+3	1523
+3	1346
+3	1524
+3	1399
+3	1347
+3	1526
+3	1403
+3	1527
+3	1379
+3	1380
+3	1350
+3	1351
+3	1530
+3	1531
+3	1357
+3	1411
+3	1414
+3	1360
+3	1532
+3	1533
+3	1362
+3	1535
+3	1537
+3	1538
+3	1436
+3	1542
+3	1507
+3	1516
+3	1544
+3	1446
+3	1447
+3	1546
+3	1452
+3	1549
+3	1458
+3	1551
+3	1552
+3	1462
+3	1468
+3	1470
+3	1554
+3	1371
+3	1502
+3	1479
+3	1482
+3	1557
+3	1484
+3	1511
+3	1488
+3	1559
+3	1560
+3	1562
+3	1375
+3	1493
+3	1563
+3	1494
+3	1376
+3	1495
+3	1503
+3	1564
+3	1565
+3	1566
+5	1380
+5	1354
+5	1351
+5	1356
+5	1602
+5	1364
+5	1457
+5	1502
+5	1482
+5	1492
+5	1376
+5	1564
+9	1416
+9	1414
+9	1438
+9	1477
+5	1378
+5	1379
+5	1350
+5	1355
+5	1357
+5	1410
+5	1430
+5	1365
+5	1371
+5	1477
+5	1490
+5	1494
+5	1375
+9	1347
+9	1587
+9	1481
+9	1436
+9	1588
+9	1376
+9	1362
+9	1349
+9	1483
+9	1412
+9	1590
+9	1592
+9	1589
+9	1344
+9	1363
+9	1371
+9	1350
+9	1586
+9	1591
 \.
 
 
@@ -30946,17 +31116,20 @@ SELECT pg_catalog.setval('public.area_id_seq', 166, true);
 
 SELECT pg_catalog.setval('public.iprange_id_seq', 2519, true);
 
+
 --
 -- Name: mirror_id_seq; Type: SEQUENCE SET; Schema: public; Owner: test
 --
 
-SELECT pg_catalog.setval('public.mirror_id_seq', 569, true);
+SELECT pg_catalog.setval('public.mirror_id_seq', 1603, true);
+
 
 --
 -- Name: mirrorstation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: test
 --
 
-SELECT pg_catalog.setval('public.mirrorstation_id_seq', 10, true);
+SELECT pg_catalog.setval('public.mirrorstation_id_seq', 12, true);
+
 
 --
 -- Name: area_area area_area_pk; Type: CONSTRAINT; Schema: public; Owner: test
@@ -30965,12 +31138,14 @@ SELECT pg_catalog.setval('public.mirrorstation_id_seq', 10, true);
 ALTER TABLE ONLY public.area_area
     ADD CONSTRAINT area_area_pk PRIMARY KEY (from_id, to_id);
 
+
 --
 -- Name: area area_name_isp_excl; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.area
     ADD CONSTRAINT area_name_isp_excl EXCLUDE USING gist (name WITH =, isp WITH =);
+
 
 --
 -- Name: area area_pkey; Type: CONSTRAINT; Schema: public; Owner: test
@@ -30979,12 +31154,14 @@ ALTER TABLE ONLY public.area
 ALTER TABLE ONLY public.area
     ADD CONSTRAINT area_pkey PRIMARY KEY (id);
 
+
 --
 -- Name: iprange_area iprange_area_pkey; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.iprange_area
     ADD CONSTRAINT iprange_area_pkey PRIMARY KEY (iprange_id);
+
 
 --
 -- Name: iprange iprange_ip_excl; Type: CONSTRAINT; Schema: public; Owner: test
@@ -30993,12 +31170,14 @@ ALTER TABLE ONLY public.iprange_area
 ALTER TABLE ONLY public.iprange
     ADD CONSTRAINT iprange_ip_excl EXCLUDE USING spgist (ip WITH &&);
 
+
 --
 -- Name: iprange iprange_pkey; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.iprange
     ADD CONSTRAINT iprange_pkey PRIMARY KEY (id);
+
 
 --
 -- Name: mirror mirror_pkey; Type: CONSTRAINT; Schema: public; Owner: test
@@ -31007,12 +31186,14 @@ ALTER TABLE ONLY public.iprange
 ALTER TABLE ONLY public.mirror
     ADD CONSTRAINT mirror_pkey PRIMARY KEY (id);
 
+
 --
 -- Name: mirrorignore mirrorignore_pk; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorignore
     ADD CONSTRAINT mirrorignore_pk PRIMARY KEY (mirrorstationid, mirrorname);
+
 
 --
 -- Name: mirrorstation_area mirrorstation_area_pk; Type: CONSTRAINT; Schema: public; Owner: test
@@ -31021,12 +31202,14 @@ ALTER TABLE ONLY public.mirrorignore
 ALTER TABLE ONLY public.mirrorstation_area
     ADD CONSTRAINT mirrorstation_area_pk PRIMARY KEY (mirrorstation_id, area_id);
 
+
 --
 -- Name: mirrorstation_mirror mirrorstation_mirror_pk; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorstation_mirror
     ADD CONSTRAINT mirrorstation_mirror_pk PRIMARY KEY (mirrorstation_id, mirror_id);
+
 
 --
 -- Name: mirrorstation mirrorstation_pkey; Type: CONSTRAINT; Schema: public; Owner: test
@@ -31035,150 +31218,174 @@ ALTER TABLE ONLY public.mirrorstation_mirror
 ALTER TABLE ONLY public.mirrorstation
     ADD CONSTRAINT mirrorstation_pkey PRIMARY KEY (id);
 
+
 --
 -- Name: area_id_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX area_id_uindex
-    ON public.area
-    USING btree (id);
+  ON public.area
+  USING btree (id);
+
 
 --
 -- Name: iprange_area_area_id_index; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE INDEX iprange_area_area_id_index
-    ON public.iprange_area
-    USING btree (area_id);
+  ON public.iprange_area
+  USING btree (area_id);
 
 --
 -- Name: iprange_area_iprange_id_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX iprange_area_iprange_id_uindex
-    ON public.iprange_area
-    USING btree (iprange_id);
+  ON public.iprange_area
+  USING btree (iprange_id);
+
 
 --
 -- Name: iprange_id_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX iprange_id_uindex
-    ON public.iprange
-    USING btree (id);
+  ON public.iprange
+  USING btree (id);
+
 
 --
 -- Name: iprange_ip_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX iprange_ip_uindex
-    ON public.iprange
-    USING btree (ip);
+  ON public.iprange
+  USING btree (ip);
+
 
 --
 -- Name: mirror_id_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX mirror_id_uindex
-    ON public.mirror
-    USING btree (id);
+  ON public.mirror
+  USING btree (id);
+
 
 --
 -- Name: mirror_name_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX mirror_name_uindex
-    ON public.mirror
-    USING btree (name);
+  ON public.mirror
+  USING btree (name);
+
 
 --
 -- Name: mirrorstation_id_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX mirrorstation_id_uindex
-    ON public.mirrorstation
-    USING btree (id);
+  ON public.mirrorstation
+  USING btree (id);
+
 
 --
 -- Name: mirrorstation_mirror_mirror_id_index; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE INDEX mirrorstation_mirror_mirror_id_index
-    ON public.mirrorstation_mirror
-    USING btree (mirror_id);
+  ON public.mirrorstation_mirror
+  USING btree (mirror_id);
+
 
 --
 -- Name: mirrorstation_mirror_mirrorstation_id_index; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE INDEX mirrorstation_mirror_mirrorstation_id_index
-    ON public.mirrorstation_mirror
-    USING btree (mirrorstation_id);
+  ON public.mirrorstation_mirror
+  USING btree (mirrorstation_id);
+
 
 --
 -- Name: mirrorstation_name_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX mirrorstation_name_uindex
-    ON public.mirrorstation
-    USING btree (name);
+  ON public.mirrorstation
+  USING btree (name);
+
 
 --
 -- Name: mirrorstation_url_uindex; Type: INDEX; Schema: public; Owner: test
 --
 
 CREATE UNIQUE INDEX mirrorstation_url_uindex
-    ON public.mirrorstation
-    USING btree (url);
+  ON public.mirrorstation
+  USING btree (url);
+
 
 --
 -- Name: area_area area_area_area_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.area_area
-    ADD CONSTRAINT area_area_area_id_fk FOREIGN KEY (from_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT area_area_area_id_fk FOREIGN KEY (from_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: area_area area_area_area_id_fk_2; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.area_area
-    ADD CONSTRAINT area_area_area_id_fk_2 FOREIGN KEY (to_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT area_area_area_id_fk_2 FOREIGN KEY (to_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: iprange_area iprange_area_area_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.iprange_area
-    ADD CONSTRAINT iprange_area_area_id_fk FOREIGN KEY (area_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT iprange_area_area_id_fk FOREIGN KEY (area_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: iprange_area iprange_area_iprange_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.iprange_area
-    ADD CONSTRAINT iprange_area_iprange_id_fk FOREIGN KEY (iprange_id) REFERENCES public.iprange (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT iprange_area_iprange_id_fk FOREIGN KEY (iprange_id) REFERENCES public.iprange (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: mirrorignore mirrorignore_mirrorstation_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorignore
-    ADD CONSTRAINT mirrorignore_mirrorstation_id_fk FOREIGN KEY (mirrorstationid) REFERENCES public.mirrorstation (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT mirrorignore_mirrorstation_id_fk FOREIGN KEY (mirrorstationid) REFERENCES public.mirrorstation (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: mirrorstation_area mirrorstation_area_area_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorstation_area
-    ADD CONSTRAINT mirrorstation_area_area_id_fk FOREIGN KEY (mirrorstation_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT mirrorstation_area_area_id_fk FOREIGN KEY (mirrorstation_id) REFERENCES public.area (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- Name: mirrorstation_area mirrorstation_area_mirrorstation_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
 ALTER TABLE ONLY public.mirrorstation_area
-    ADD CONSTRAINT mirrorstation_area_mirrorstation_id_fk FOREIGN KEY (mirrorstation_id) REFERENCES public.mirrorstation (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  ADD CONSTRAINT mirrorstation_area_mirrorstation_id_fk FOREIGN KEY (mirrorstation_id) REFERENCES public.mirrorstation (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: longfangsong
+--
+
+GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
