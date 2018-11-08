@@ -14,6 +14,8 @@ IP地址 与 镜像名称 到 镜像站url的对应关系表为protobuf格式，
 
 Dashboard部分使用Vue开发，UI框架为Vuetify。
 
+Dashboard和Master部分的数据交换采用GraphQL。
+
 ## Big picture
 
 kaleido分为三个部分：

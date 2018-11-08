@@ -6,4 +6,5 @@ import (
 
 func main() {
 	initDB.InitAll()
+	//fmt.Println(MirrorStation.All())
 }

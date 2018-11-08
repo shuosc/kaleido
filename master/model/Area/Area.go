@@ -9,15 +9,15 @@ type Area struct {
 	Id uint64
 }
 
-func (area Area) GetName() string {
+func (area Area) GetName() (string, error) {
 	var result string
 	row := DB.DB.QueryRow(`
 	SELECT name from area where id=$1;
 	`, area.Id)
-	if row.Scan(&result) != nil {
-		panic("Unable to get name!")
+	if err := row.Scan(&result); err != nil {
+		return "", err
 	}
-	return result
+	return result, nil
 }
 
 func SetDistance(areaFrom Area, areaTo Area, distance uint64) {
@@ -51,18 +51,18 @@ func New(name string) Area {
 	return result
 }
 
-func All() []Area {
+func All() ([]Area, error) {
 	var result []Area
 	rows, err := DB.DB.Query(`
 	SELECT id from area;
 	`)
 	if err != nil {
-		panic("Unable to get all areas!")
+		return nil, err
 	}
 	for rows.Next() {
 		var item Area
 		rows.Scan(&item.Id)
 		result = append(result, item)
 	}
-	return result
+	return result, nil
 }

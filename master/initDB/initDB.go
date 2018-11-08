@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
+	"kaleido/master/DB"
 	"kaleido/master/model/Area"
 	"kaleido/master/model/IPRange"
 	"kaleido/master/model/ISP"
+	"kaleido/master/model/MirrorStation"
 	"math"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,6 +20,20 @@ import (
 type ispPageInfo struct {
 	Doc  *goquery.Document
 	Name string
+}
+
+func execSQLFile(path string) {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	requests := strings.Split(string(file), ";")
+	for _, request := range requests {
+		_, err := DB.DB.Exec(request)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func parseISPPage(pageInfo ispPageInfo) {
@@ -65,6 +82,22 @@ func initAreas() {
 		info := <-channels
 		parseISPPage(info)
 	}
+	// 部分IP段（尤其是镜像站的IP段）网页上查找不到
+	// 修复
+	iprange := IPRange.NewIPV4WithIPRange("202.141.160.0", "202.141.160.255")
+	area := Area.GetOrCreate("安徽")
+	isp := ISP.GetOrCreate("CHINANET")
+	iprange.SetAreaISP(area, isp)
+
+	iprange = IPRange.NewIPV4WithIPRange("40.73.103.0", "40.73.103.255")
+	area = Area.GetOrCreate("上海")
+	isp = ISP.GetOrCreate("UNICOM")
+	iprange.SetAreaISP(area, isp)
+
+	iprange = IPRange.NewIPV4WithIPRange("59.111.0.0", "59.111.0.255")
+	area = Area.GetOrCreate("浙江")
+	isp = ISP.GetOrCreate("CMNET")
+	iprange.SetAreaISP(area, isp)
 }
 
 func getAreaCoordinateURL(areaName string) string {
@@ -78,7 +111,10 @@ type coordinate struct {
 }
 
 func initAreaDistance() {
-	areas := Area.All()
+	areas, err := Area.All()
+	if err != nil {
+		panic("Unable to fetch all areas!")
+	}
 	areaCoordinate := fetchAreaCoordinates(areas)
 	for _, areaFrom := range areas {
 		for _, areaTo := range areas {
@@ -97,10 +133,13 @@ func initAreaDistance() {
 func fetchAreaCoordinates(areas []Area.Area) map[Area.Area]coordinate {
 	areaCoordinate := map[Area.Area]coordinate{}
 	var areaCoordinateMutex sync.Mutex
-	channel := make(chan int, len(areas))
+	var wg sync.WaitGroup
 	for _, area := range areas {
+		wg.Add(1)
 		go func(area_ Area.Area) {
-			response, _ := http.Get(getAreaCoordinateURL(area_.GetName()))
+			defer wg.Done()
+			name, _ := area_.GetName()
+			response, _ := http.Get(getAreaCoordinateURL(name))
 			body, _ := ioutil.ReadAll(response.Body)
 			var result struct {
 				Result struct {
@@ -111,21 +150,38 @@ func fetchAreaCoordinates(areas []Area.Area) map[Area.Area]coordinate {
 			areaCoordinateMutex.Lock()
 			defer areaCoordinateMutex.Unlock()
 			areaCoordinate[area_] = result.Result.Location
-			channel <- 1
 		}(area)
 	}
 	// 填百度接口的坑
 	areaCoordinate[Area.GetOrCreate("海南")] = coordinate{Lng: 110.35, Lat: 20.02}
 	areaCoordinate[Area.GetOrCreate("香港")] = coordinate{Lng: 114.1, Lat: 22.2}
 	areaCoordinate[Area.GetOrCreate("河南")] = coordinate{Lng: 113.65, Lat: 34.76}
-	for range areas {
-		<-channel
-	}
+	wg.Wait()
 	return areaCoordinate
 }
 
+func initMirrorStationIPRange() {
+	stations, err := MirrorStation.All()
+	if err != nil {
+		panic("Cannot get all stations!")
+	}
+	for _, station := range stations {
+		url, err := station.GetURL()
+		if err != nil {
+			panic("Cannot get url!")
+		}
+		ips, err := net.LookupIP(url[strings.Index(url, "//")+2:])
+		for _, ip := range ips {
+			station.AddIPRange(ip.String())
+		}
+	}
+}
+
 func InitAll() {
+	execSQLFile("./tables.sql")
+	execSQLFile("./data.sql")
 	initAreas()
 	initAreaDistance()
+	initMirrorStationIPRange()
 	println("DB init success!")
 }

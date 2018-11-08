@@ -19,3 +19,14 @@ func New(name string) ISP {
 	}
 	return result
 }
+
+func GetOrCreate(name string) ISP {
+	var result ISP
+	row := DB.DB.QueryRow(`
+	SELECT id FROM isp WHERE name=$1;
+	`, name)
+	if err := row.Scan(&result.Id); err != nil {
+		return New(name)
+	}
+	return result
+}

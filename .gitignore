@@ -142,5 +142,5 @@ $RECYCLE.BIN/
 *.pb.go
 /node/Node
 /master/Master
-/master/master
+initDB
 /node/node
