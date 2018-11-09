@@ -107,8 +107,8 @@ func makeMirrors(tx *sql.Tx) (map[string]*KaleidoMessage.Mirror, error) {
 	}
 	for rows.Next() {
 		var mirrorName string
-		var area uint32
-		var isp uint32
+		var area uint64
+		var isp uint64
 		var stationGroup pq.Int64Array
 		err = rows.Scan(&mirrorName, &stationGroup, &area, &isp)
 		if err != nil {
@@ -123,7 +123,7 @@ func makeMirrors(tx *sql.Tx) (map[string]*KaleidoMessage.Mirror, error) {
 			mirrorObject = result[mirrorName]
 		}
 		mirrorObject.FallbackMirrorStationId = uint64(stationGroup[0])
-		areaISP := tools.PackUInt32(area, isp)
+		areaISP := tools.PackUInt32(uint32(area), uint32(isp))
 		if mirrorObject.AreaISP_MirrorStationGroup == nil {
 			mirrorObject.AreaISP_MirrorStationGroup = map[uint64]*KaleidoMessage.MirrorStationGroup{}
 		}

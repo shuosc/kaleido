@@ -148,5 +148,5 @@ func StartGraphQLServer() {
 		})
 		json.NewEncoder(w).Encode(result)
 	})
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8086", nil)
 }

@@ -35,6 +35,7 @@ func StartCronJobs() {
 			}
 		}()
 	}
+	uploadTableChannel <- 1
 	for {
 		stations, err := MirrorStation.All()
 		if err != nil {
