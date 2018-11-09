@@ -41,7 +41,7 @@ VALUES (7, 10, 'Downloads');
 INSERT INTO public.mirrorignore (id, mirrorstation_id, name)
 VALUES (8, 10, 'linux');
 INSERT INTO public.mirrorignore (id, mirrorstation_id, name)
-VALUES (9, 2, '\",');
+VALUES (9, 2, '",');
 INSERT INTO public.mirrorignore (id, mirrorstation_id, name)
 VALUES (10, 11, '系统');
 INSERT INTO public.mirrorignore (id, mirrorstation_id, name)

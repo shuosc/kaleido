@@ -51,6 +51,24 @@ func AllWithTransaction(tx *sql.Tx) (result []Mirror, err error) {
 	return result, err
 }
 
+func All() (result []Mirror, err error) {
+	rows, err := DB.DB.Query(`
+	SELECT id FROM mirror;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var mirror Mirror
+		err := rows.Scan(&mirror.Id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, mirror)
+	}
+	return result, err
+}
+
 func (mirror Mirror) GetName() (result string, err error) {
 	row := DB.DB.QueryRow(`
 	SELECT name FROM mirror WHERE id=$1;

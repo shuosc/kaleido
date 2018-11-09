@@ -15,6 +15,8 @@ type MirrorStation interface {
 	AddIPRange(ip string) error
 	GetId() uint64
 	GetURLWithTransaction(tx *sql.Tx) (string, error)
+	GetName() (string, error)
+	GetMirrors() ([]Mirror.Mirror, error)
 }
 
 type Base struct {
@@ -25,7 +27,7 @@ func (station Base) GetId() uint64 {
 	return station.Id
 }
 
-func (station Base) getName() (string, error) {
+func (station Base) GetName() (string, error) {
 	var result string
 	row := DB.DB.QueryRow(`
 	SELECT name from mirrorstation where id=$1;
@@ -72,7 +74,7 @@ func (station Base) removeMirror(mirror Mirror.Mirror) error {
 	return err
 }
 
-func (station Base) getMirrors() ([]Mirror.Mirror, error) {
+func (station Base) GetMirrors() ([]Mirror.Mirror, error) {
 	var result []Mirror.Mirror
 	rows, err := DB.DB.Query(`
 		SELECT mirror_id FROM mirrorstation_mirror where mirrorstation_id=$1;
@@ -136,7 +138,7 @@ func toSet(list []Mirror.Mirror) map[Mirror.Mirror]bool {
 }
 
 func (station Base) analyzeMirrorList(mirrors []Mirror.Mirror) (bool, error) {
-	oldMirrors, err := station.getMirrors()
+	oldMirrors, err := station.GetMirrors()
 	if err != nil {
 		return false, err
 	}
@@ -237,4 +239,27 @@ func GetWithTransaction(id uint64, tx *sql.Tx) (MirrorStation, error) {
 		return webIndexed, nil
 	}
 	return nil, err
+}
+
+func GetStations(mirror Mirror.Mirror) ([]MirrorStation, error) {
+	var result []MirrorStation
+	rows, err := DB.DB.Query(`
+	SELECT mirrorstation_id FROM mirrorstation_mirror where mirror_id=$1;
+	`, mirror.Id)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id uint64
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		station, err := Get(id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, station)
+	}
+	return result, nil
 }

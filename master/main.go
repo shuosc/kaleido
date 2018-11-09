@@ -7,5 +7,7 @@ import (
 
 func main() {
 	//initDB.InitAll()
-	service.StartCronJobs()
+	go service.StartCronJobs()
+	go service.StartGraphQLServer()
+	select {}
 }
