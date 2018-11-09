@@ -1,6 +1,7 @@
 package MirrorStation
 
 import (
+	"database/sql"
 	"github.com/PuerkitoBio/goquery"
 	"kaleido/master/DB"
 	"kaleido/master/model/Mirror"
@@ -35,6 +36,10 @@ func (station WebIndexMirrorStation) fetchNewMirrorList() ([]Mirror.Mirror, erro
 		return nil, err
 	}
 	pageDoc, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		station.setAlive(false)
+		return nil, err
+	}
 	selector, err := station.getSelector()
 	if err != nil {
 		station.setAlive(false)
@@ -91,4 +96,40 @@ func allWebIndexed() ([]WebIndexMirrorStation, error) {
 		result = append(result, station)
 	}
 	return result, nil
+}
+
+func allWebIndexedWithTransaction(tx *sql.Tx) ([]WebIndexMirrorStation, error) {
+	var result []WebIndexMirrorStation
+	rows, err := tx.Query(`
+	SELECT id FROM webindexedmirrorstation;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var station WebIndexMirrorStation
+		if rows.Scan(&station.Id) != nil {
+			return nil, err
+		}
+		result = append(result, station)
+	}
+	return result, nil
+}
+
+func getWebIndexed(id uint64) (WebIndexMirrorStation, error) {
+	result := WebIndexMirrorStation{}
+	row := DB.DB.QueryRow(`
+	SELECT exists(select id FROM webindexedmirrorstation where id=$1);
+	`, id)
+	err := row.Scan(&result.Id)
+	return result, err
+}
+
+func getWebIndexedWithTransaction(id uint64, tx *sql.Tx) (WebIndexMirrorStation, error) {
+	result := WebIndexMirrorStation{}
+	row := tx.QueryRow(`
+	SELECT exists(select id FROM webindexedmirrorstation where id=$1);
+	`, id)
+	err := row.Scan(&result.Id)
+	return result, err
 }

@@ -1,10 +1,8 @@
 package main
 
-import (
-	"kaleido/master/initDB"
-)
+import "kaleido/master/service"
 
 func main() {
-	initDB.InitAll()
-	//fmt.Println(MirrorStation.All())
+	service.StartCronJobs()
+	//initDB.InitAll()
 }

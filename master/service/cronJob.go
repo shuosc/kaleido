@@ -7,12 +7,15 @@ import (
 	"time"
 )
 
-func init() {
+func StartCronJobs() {
 	syncStationChannel := make(chan MirrorStation.MirrorStation, runtime.NumCPU())
 	uploadTableChannel := make(chan int)
 	go func() {
-		<-uploadTableChannel
-		uploadTable()
+		for {
+			<-uploadTableChannel
+			uploadTable()
+			time.Sleep(5 * time.Second)
+		}
 	}()
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {

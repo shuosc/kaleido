@@ -8,7 +8,7 @@ func rad(degree float64) float64 {
 	return degree * math.Pi / 180.0
 }
 
-func Distance(lat1 float64, lng1 float64, lat2 float64, lng2 float64) float64 {
+func distance(lat1 float64, lng1 float64, lat2 float64, lng2 float64) float64 {
 	radLat1 := rad(lat1)
 	radLat2 := rad(lat2)
 	a := math.Pow(math.Sin((radLat1-radLat2)/2), 2)

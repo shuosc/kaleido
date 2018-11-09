@@ -1,6 +1,7 @@
 package Area
 
 import (
+	"database/sql"
 	_ "database/sql"
 	"kaleido/master/DB"
 )
@@ -54,6 +55,22 @@ func New(name string) Area {
 func All() ([]Area, error) {
 	var result []Area
 	rows, err := DB.DB.Query(`
+	SELECT id from area;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var item Area
+		rows.Scan(&item.Id)
+		result = append(result, item)
+	}
+	return result, nil
+}
+
+func AllWithTransaction(tx *sql.Tx) ([]Area, error) {
+	var result []Area
+	rows, err := tx.Query(`
 	SELECT id from area;
 	`)
 	if err != nil {

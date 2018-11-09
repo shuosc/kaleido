@@ -1,6 +1,7 @@
 package MirrorStation
 
 import (
+	"database/sql"
 	_ "database/sql"
 	"kaleido/master/DB"
 	"kaleido/master/model/Mirror"
@@ -12,10 +13,16 @@ type MirrorStation interface {
 	SyncMirrorList() (bool, error)
 	GetURL() (string, error)
 	AddIPRange(ip string) error
+	GetId() uint64
+	GetURLWithTransaction(tx *sql.Tx) (string, error)
 }
 
 type Base struct {
 	Id uint64
+}
+
+func (station Base) GetId() uint64 {
+	return station.Id
 }
 
 func (station Base) getName() (string, error) {
@@ -32,6 +39,17 @@ func (station Base) getName() (string, error) {
 func (station Base) getURL() (string, error) {
 	var result string
 	row := DB.DB.QueryRow(`
+	SELECT url from mirrorstation where id=$1;
+	`, station.Id)
+	if err := row.Scan(&result); err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (station Base) GetURLWithTransaction(tx *sql.Tx) (string, error) {
+	var result string
+	row := tx.QueryRow(`
 	SELECT url from mirrorstation where id=$1;
 	`, station.Id)
 	if err := row.Scan(&result); err != nil {
@@ -164,6 +182,25 @@ func All() ([]MirrorStation, error) {
 	return result, nil
 }
 
+func AllWithTranscation(tx *sql.Tx) ([]MirrorStation, error) {
+	var result []MirrorStation
+	webIndexed, err := allWebIndexedWithTransaction(tx)
+	if err != nil {
+		return nil, err
+	}
+	jsonIndexed, err := allJsonIndexedWithTransaction(tx)
+	if err != nil {
+		return nil, err
+	}
+	for _, station := range webIndexed {
+		result = append(result, station)
+	}
+	for _, station := range jsonIndexed {
+		result = append(result, station)
+	}
+	return result, nil
+}
+
 func InitialSync() {
 	stations, err := All()
 	if err != nil {
@@ -179,4 +216,28 @@ func InitialSync() {
 	}
 	wg.Wait()
 	log.Println("Initial crawl success!")
+}
+
+func Get(id uint64) (MirrorStation, error) {
+	jsonIndexed, err := getJsonIndexed(id)
+	if err == nil {
+		return jsonIndexed, nil
+	}
+	webIndexed, err := getWebIndexed(id)
+	if err == nil {
+		return webIndexed, nil
+	}
+	return nil, err
+}
+
+func GetWithTransaction(id uint64, tx *sql.Tx) (MirrorStation, error) {
+	jsonIndexed, err := getJsonIndexedWithTransaction(id, tx)
+	if err == nil {
+		return jsonIndexed, nil
+	}
+	webIndexed, err := getWebIndexedWithTransaction(id, tx)
+	if err == nil {
+		return webIndexed, nil
+	}
+	return nil, err
 }

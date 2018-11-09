@@ -123,7 +123,7 @@ func initAreaDistance() {
 			} else {
 				fromCoordinate := areaCoordinate[areaFrom]
 				toCoordinate := areaCoordinate[areaTo]
-				distance := Distance(fromCoordinate.Lng, fromCoordinate.Lat, toCoordinate.Lng, toCoordinate.Lat)
+				distance := distance(fromCoordinate.Lng, fromCoordinate.Lat, toCoordinate.Lng, toCoordinate.Lat)
 				Area.SetDistance(areaFrom, areaTo, uint64(math.Ceil(distance)))
 			}
 		}

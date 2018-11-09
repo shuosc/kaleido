@@ -8,7 +8,7 @@ VALUES (11, '阿里巴巴', 'https://mirrors.aliyun.com', 'https://opsx.alibaba.
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
 VALUES (3, '中国科学技术大学', 'https://mirrors.ustc.edu.cn', '.filelist td.filename a');
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
-VALUES (4, '上海交通大学', 'https://ftp.sjtu.edu.cn', '#filelist .filelist td.filename a');
+VALUES (4, '上海交通大学', 'https://ftp.sjtu.edu.cn', 'a:not(a:first-of-type)');
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
 VALUES (5, '上海科技大学', 'https://mirrors.geekpie.club', '.indexcolicon a');
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
@@ -20,7 +20,7 @@ VALUES (8, '华中科技大学', 'http://mirrors.hust.edu.cn', '#mirror-tbody tr
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
 VALUES (9, '东软信息学院', 'https://mirrors.neusoft.edu.cn', '.container section .table-mirror tbody td:first-of-type a');
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
-VALUES (10, '北京理工大学', 'http://mirrors.hust.edu.cn', '#mirror-tbody tr td:first-of-type a');
+VALUES (10, '北京理工大学', 'http://mirror.bit.edu.cn', 'ul>li>a:first-of-type');
 INSERT INTO public.webindexedmirrorstation (id, name, url, selector)
 VALUES (12, '网易', 'http://mirrors.163.com', '#distro-table > tbody > tr td:first-of-type a');
 

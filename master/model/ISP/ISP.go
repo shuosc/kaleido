@@ -1,6 +1,7 @@
 package ISP
 
 import (
+	"database/sql"
 	_ "database/sql"
 	"kaleido/master/DB"
 )
@@ -29,4 +30,20 @@ func GetOrCreate(name string) ISP {
 		return New(name)
 	}
 	return result
+}
+
+func AllWithTranscation(tx *sql.Tx) ([]ISP, error) {
+	var result []ISP
+	rows, err := tx.Query(`
+	SELECT id from isp;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var item ISP
+		rows.Scan(&item.Id)
+		result = append(result, item)
+	}
+	return result, nil
 }

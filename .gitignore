@@ -144,3 +144,4 @@ $RECYCLE.BIN/
 /master/Master
 initDB
 /node/node
+!master/service/initDB/
