@@ -1,18 +1,21 @@
 package service
 
 import (
+	"bytes"
 	"database/sql"
 	_ "database/sql"
 	"github.com/lib/pq"
 	"kaleido/common/message"
+	"kaleido/common/oss"
 	"kaleido/common/tools"
 	"kaleido/master/DB"
 	"kaleido/master/model/IPRange"
 	"kaleido/master/model/MirrorStation"
+	"log"
 )
 
-func MakeTable() (KaleidoMessage.KaleidoMessage, error) {
-	var result KaleidoMessage.KaleidoMessage
+func makeTable() (*KaleidoMessage.KaleidoMessage, error) {
+	result := new(KaleidoMessage.KaleidoMessage)
 	tx, err := DB.DB.Begin()
 	defer tx.Commit()
 	if err != nil {
@@ -111,8 +114,6 @@ func makeMirrors(tx *sql.Tx) (map[string]*KaleidoMessage.Mirror, error) {
 		if err != nil {
 			return nil, err
 		}
-		// we cannot use GetNameWithTransaction since there's a bug in pq
-		// see https://github.com/lib/pq/issues/635
 		if err != nil {
 			return nil, err
 		}
@@ -135,5 +136,16 @@ func makeMirrors(tx *sql.Tx) (map[string]*KaleidoMessage.Mirror, error) {
 }
 
 func uploadTable() {
-
+	message, err := makeTable()
+	if err != nil {
+		log.Println(err)
+	}
+	data, err := message.Marshal()
+	if err != nil {
+		log.Println(err)
+	}
+	err = oss.Bucket.PutObject("kaleido-message", bytes.NewBuffer(data))
+	if err != nil {
+		log.Println(err)
+	}
 }

@@ -14,6 +14,7 @@ func StartCronJobs() {
 		for {
 			<-uploadTableChannel
 			uploadTable()
+			log.Println("new table uploaded")
 			time.Sleep(5 * time.Second)
 		}
 	}()
@@ -23,7 +24,7 @@ func StartCronJobs() {
 				station := <-syncStationChannel
 				changed, err := station.SyncMirrorList()
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
 				if changed {
 					select {
@@ -37,7 +38,7 @@ func StartCronJobs() {
 	for {
 		stations, err := MirrorStation.All()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		for _, mirror := range stations {
 			syncStationChannel <- mirror

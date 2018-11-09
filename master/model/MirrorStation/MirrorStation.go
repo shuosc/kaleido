@@ -141,9 +141,6 @@ func (station Base) analyzeMirrorList(mirrors []Mirror.Mirror) (bool, error) {
 		return false, err
 	}
 	var modified bool
-	if len(mirrors) != len(oldMirrors) {
-		modified = true
-	}
 	oldMirrorSet := toSet(oldMirrors)
 	newMirrorSet := toSet(mirrors)
 	for mirror := range oldMirrorSet {
