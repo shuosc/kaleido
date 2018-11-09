@@ -3,19 +3,18 @@ package service
 import (
 	"database/sql"
 	_ "database/sql"
+	"github.com/lib/pq"
 	"kaleido/common/message"
 	"kaleido/common/tools"
 	"kaleido/master/DB"
-	"kaleido/master/model/Area"
 	"kaleido/master/model/IPRange"
-	"kaleido/master/model/ISP"
-	"kaleido/master/model/Mirror"
 	"kaleido/master/model/MirrorStation"
 )
 
-func makeTable() (KaleidoMessage.KaleidoMessage, error) {
+func MakeTable() (KaleidoMessage.KaleidoMessage, error) {
 	var result KaleidoMessage.KaleidoMessage
 	tx, err := DB.DB.Begin()
+	defer tx.Commit()
 	if err != nil {
 		return result, err
 	}
@@ -59,7 +58,7 @@ func makeAddressToAreaISP(tx *sql.Tx) (map[uint64]uint64, error) {
 
 func makeMirrorStationIdToUrl(tx *sql.Tx) (map[uint64]string, error) {
 	result := map[uint64]string{}
-	stations, err := MirrorStation.AllWithTranscation(tx)
+	stations, err := MirrorStation.AllWithTransaction(tx)
 	if err != nil {
 		return nil, err
 	}
@@ -74,57 +73,62 @@ func makeMirrorStationIdToUrl(tx *sql.Tx) (map[uint64]string, error) {
 
 func makeMirrors(tx *sql.Tx) (map[string]*KaleidoMessage.Mirror, error) {
 	result := map[string]*KaleidoMessage.Mirror{}
-	mirrors, err := Mirror.AllWithTransaction(tx)
+	rows, err := tx.Query(`
+	select mirror_name, station_group, to_area_id, isp_id
+	from (select mirror.name                                                                              as mirror_name,
+	             mirrorstation_mirror.mirror_id                                                           as mirror_id,
+	             array_agg(mirrorstation_mirror.mirrorstation_id)                                         as station_group,
+	             area_area.distance +
+	             case when isp.id = ispForMirrorStation.id then 0 else 10 end                             as network_distance,
+	             area_area.to_id                                                                          as to_area_id,
+	             isp.id                                                                                   as isp_id,
+	             row_number() over (partition by mirrorstation_mirror.mirror_id, area_area.to_id, isp.id) as rn
+	      from mirrorstation_mirror,
+	           mirrorstation_iprange,
+	           isp as ispForMirrorStation,
+	           isp,
+	           iprange_area_isp as iprange_area_ispForMirrorstation,
+	           area_area,
+	           mirror
+	      where mirrorstation_mirror.mirrorstation_id = mirrorstation_iprange.mirrorstation_id
+	        AND mirrorstation_iprange.iprange_id = iprange_area_ispForMirrorstation.iprange_id
+	        AND ispForMirrorStation.id = iprange_area_ispForMirrorstation.isp_id
+	        AND area_area.from_id = iprange_area_ispForMirrorstation.area_id
+	        AND mirror.id = mirrorstation_mirror.mirror_id
+	      group by network_distance, area_area.to_id, isp.id, mirrorstation_mirror.mirror_id, mirror.name
+	      order by mirrorstation_mirror.mirror_id, to_area_id, isp_id, network_distance) as all_data
+	where rn = 1;
+	`)
 	if err != nil {
 		return nil, err
 	}
-	for _, mirror := range mirrors {
-		name, err := mirror.GetNameWithTransaction(tx)
+	for rows.Next() {
+		var mirrorName string
+		var area uint32
+		var isp uint32
+		var stationGroup pq.Int64Array
+		err = rows.Scan(&mirrorName, &stationGroup, &area, &isp)
 		if err != nil {
 			return nil, err
 		}
-		result[name], err = makeMirror(tx, mirror)
+		// we cannot use GetNameWithTransaction since there's a bug in pq
+		// see https://github.com/lib/pq/issues/635
 		if err != nil {
 			return nil, err
 		}
-	}
-	return result, nil
-}
-
-func makeMirror(tx *sql.Tx, mirror Mirror.Mirror) (result *KaleidoMessage.Mirror, err error) {
-	result = new(KaleidoMessage.Mirror)
-	result.FallbackMirrorStationId, err = mirror.GetFallbackMirrorStationIdWithTransaction(tx)
-	if err != nil {
-		return nil, err
-	}
-	result.AreaISP_MirrorStationGroup, err = GetAreaISPToMirrorStationGroupMap(mirror, tx)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func GetAreaISPToMirrorStationGroupMap(mirror Mirror.Mirror, tx *sql.Tx) (map[uint64]*KaleidoMessage.MirrorStationGroup, error) {
-	result := map[uint64]*KaleidoMessage.MirrorStationGroup{}
-	areas, err := Area.AllWithTransaction(tx)
-	if err != nil {
-		return nil, err
-	}
-	isps, err := ISP.AllWithTranscation(tx)
-	if err != nil {
-		return nil, err
-	}
-	for _, area := range areas {
-		for _, isp := range isps {
-			key := tools.PackUInt32(uint32(area.Id), uint32(isp.Id))
-			result[key] = &KaleidoMessage.MirrorStationGroup{}
-			stations, err := mirror.GetMirrorStationsForAreaAndISPWithTransaction(area, isp, tx)
-			if err != nil {
-				return nil, err
-			}
-			for _, station := range stations {
-				result[key].Stations = append(result[key].Stations, station.GetId())
-			}
+		mirrorObject, has := result[mirrorName]
+		if !has {
+			result[mirrorName] = &KaleidoMessage.Mirror{}
+			mirrorObject = result[mirrorName]
+		}
+		mirrorObject.FallbackMirrorStationId = uint64(stationGroup[0])
+		areaISP := tools.PackUInt32(area, isp)
+		if mirrorObject.AreaISP_MirrorStationGroup == nil {
+			mirrorObject.AreaISP_MirrorStationGroup = map[uint64]*KaleidoMessage.MirrorStationGroup{}
+		}
+		mirrorObject.AreaISP_MirrorStationGroup[areaISP] = &KaleidoMessage.MirrorStationGroup{}
+		for _, stationId := range stationGroup {
+			mirrorObject.AreaISP_MirrorStationGroup[areaISP].Stations = append(mirrorObject.AreaISP_MirrorStationGroup[areaISP].Stations, uint64(stationId))
 		}
 	}
 	return result, nil

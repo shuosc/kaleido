@@ -2,6 +2,7 @@ package MirrorStation
 
 import (
 	"database/sql"
+	"errors"
 	"io/ioutil"
 	"kaleido/master/DB"
 	"kaleido/master/model/Mirror"
@@ -109,19 +110,25 @@ func allJsonIndexedWithTransaction(tx *sql.Tx) ([]JsonIndexMirrorStation, error)
 }
 
 func getJsonIndexed(id uint64) (JsonIndexMirrorStation, error) {
-	result := JsonIndexMirrorStation{}
+	var result bool
 	row := DB.DB.QueryRow(`
 	SELECT exists(select id FROM jsonindexedmirrorstation where id=$1);
 	`, id)
-	err := row.Scan(&result.Id)
-	return result, err
+	row.Scan(&result)
+	if result {
+		return JsonIndexMirrorStation{Base{id}}, nil
+	}
+	return JsonIndexMirrorStation{}, errors.New("not found")
 }
 
 func getJsonIndexedWithTransaction(id uint64, tx *sql.Tx) (JsonIndexMirrorStation, error) {
-	result := JsonIndexMirrorStation{}
+	var result bool
 	row := tx.QueryRow(`
 	SELECT exists(select id FROM jsonindexedmirrorstation where id=$1);
 	`, id)
-	err := row.Scan(&result.Id)
-	return result, err
+	row.Scan(&result)
+	if result {
+		return JsonIndexMirrorStation{Base{id}}, nil
+	}
+	return JsonIndexMirrorStation{}, errors.New("not found")
 }

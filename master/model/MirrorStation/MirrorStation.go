@@ -182,7 +182,7 @@ func All() ([]MirrorStation, error) {
 	return result, nil
 }
 
-func AllWithTranscation(tx *sql.Tx) ([]MirrorStation, error) {
+func AllWithTransaction(tx *sql.Tx) ([]MirrorStation, error) {
 	var result []MirrorStation
 	webIndexed, err := allWebIndexedWithTransaction(tx)
 	if err != nil {

@@ -2,6 +2,7 @@ package MirrorStation
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"kaleido/master/DB"
 	"kaleido/master/model/Mirror"
@@ -116,20 +117,26 @@ func allWebIndexedWithTransaction(tx *sql.Tx) ([]WebIndexMirrorStation, error) {
 	return result, nil
 }
 
-func getWebIndexed(id uint64) (WebIndexMirrorStation, error) {
-	result := WebIndexMirrorStation{}
+func getWebIndexed(id uint64) (JsonIndexMirrorStation, error) {
+	var result bool
 	row := DB.DB.QueryRow(`
 	SELECT exists(select id FROM webindexedmirrorstation where id=$1);
 	`, id)
-	err := row.Scan(&result.Id)
-	return result, err
+	row.Scan(&result)
+	if result {
+		return JsonIndexMirrorStation{Base{id}}, nil
+	}
+	return JsonIndexMirrorStation{}, errors.New("not found")
 }
 
-func getWebIndexedWithTransaction(id uint64, tx *sql.Tx) (WebIndexMirrorStation, error) {
-	result := WebIndexMirrorStation{}
+func getWebIndexedWithTransaction(id uint64, tx *sql.Tx) (JsonIndexMirrorStation, error) {
+	var result bool
 	row := tx.QueryRow(`
 	SELECT exists(select id FROM webindexedmirrorstation where id=$1);
 	`, id)
-	err := row.Scan(&result.Id)
-	return result, err
+	row.Scan(&result)
+	if result {
+		return JsonIndexMirrorStation{Base{id}}, nil
+	}
+	return JsonIndexMirrorStation{}, errors.New("not found")
 }

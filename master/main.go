@@ -1,8 +1,9 @@
 package main
 
-import "kaleido/master/service"
+import (
+	_ "net/http/pprof"
+)
 
 func main() {
-	service.StartCronJobs()
-	//initDB.InitAll()
+
 }
