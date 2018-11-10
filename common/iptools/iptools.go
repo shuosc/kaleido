@@ -42,6 +42,10 @@ func MergedMaskedIP(ipv4 string, maskBitLength uint8) (masked uint64, err error)
 	return tools.PackUInt32(MaskIP(numberForm, maskBitLength), uint32(maskBitLength)), nil
 }
 
+func MergedMaskedIPNumberform(ipv4 uint32, maskBitLength uint8) (masked uint64, err error) {
+	return tools.PackUInt32(MaskIP(ipv4, maskBitLength), uint32(maskBitLength)), nil
+}
+
 func init() {
 	for i := uint8(0); i <= 32; i++ {
 		maskTable[i] = makeMask(i)

@@ -47,24 +47,26 @@ func GetRedirectToStation(mirror string, ip string) string {
 	mutex.RLock()
 	defer mutex.RUnlock()
 	table := message.Mirrors[mirror].AreaISP_MirrorStationGroup
-	for mask := 32; mask >= 0; mask-- {
-		masked, err := iptools.MergedMaskedIP(ip, uint8(mask))
-		fmt.Println(ip, mask, masked)
-		if err != nil {
-			continue
-		}
-		if areaISP, ok := message.Address_AreaISP[masked]; ok {
-			mirrorStationIdGroup := table[areaISP].Stations
-			mirrorStationId := mirrorStationIdGroup[spinNum%uint32(len(mirrorStationIdGroup))]
-			spinNum++
-			return message.MirrorStationId_Url[mirrorStationId]
+	numberForm, err := iptools.IPv4ToNumberForm(ip)
+	if err == nil {
+		for mask := 32; mask >= 0; mask-- {
+			masked, err := iptools.MergedMaskedIPNumberform(numberForm, uint8(mask))
+			if err != nil {
+				continue
+			}
+			if areaISP, ok := message.Address_AreaISP[masked]; ok {
+				mirrorStationIdGroup := table[areaISP].Stations
+				mirrorStationId := mirrorStationIdGroup[spinNum%uint32(len(mirrorStationIdGroup))]
+				spinNum++
+				return message.MirrorStationId_Url[mirrorStationId]
+			}
 		}
 	}
 	return message.MirrorStationId_Url[message.Mirrors[mirror].FallbackMirrorStationId]
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	from := r.Header["Remote_addr"][0]
+	from := r.Header.Get("Remote_addr")
 	if r.Header.Get("force-redirect-ip") != "" {
 		from = r.Header.Get("force-redirect-ip")
 	}
