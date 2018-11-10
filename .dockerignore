@@ -1,0 +1,8 @@
+.git
+/data
+/doc
+/tables.sql
+/data.sql
+/initDB
+/logfile
+/readme.md
