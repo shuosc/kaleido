@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"github.com/graphql-go/graphql"
+	"io/ioutil"
 	"kaleido/master/model/Mirror"
 	"kaleido/master/model/MirrorStation"
 	"net/http"
@@ -142,9 +143,21 @@ func StartGraphQLServer() {
 	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		query := r.URL.Query().Get("query")
+		var variables map[string]interface{}
+		if query == "" {
+			data, _ := ioutil.ReadAll(r.Body)
+			var result struct {
+				Query     string                 `json:"query"`
+				Variables map[string]interface{} `json:"variables"`
+			}
+			json.Unmarshal(data, &result)
+			query = result.Query
+			variables = result.Variables
+		}
 		result := graphql.Do(graphql.Params{
-			Schema:        kaleidoSchema,
-			RequestString: query,
+			Schema:         kaleidoSchema,
+			RequestString:  query,
+			VariableValues: variables,
 		})
 		json.NewEncoder(w).Encode(result)
 	})
