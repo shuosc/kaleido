@@ -1,0 +1,9 @@
+# getMirrors
+query getMirrors {
+    mirrors {
+        name
+        mirrorStations {
+            name
+        }
+    }
+}

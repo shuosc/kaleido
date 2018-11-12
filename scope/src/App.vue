@@ -3,7 +3,7 @@
         <v-app id="inspire">
             <v-navigation-drawer v-model="drawer" fixed app>
                 <v-list dense>
-                    <v-list-tile @click="">
+                    <v-list-tile @click="$router.push('mirrors')">
                         <v-list-tile-action>
                             <v-icon>save</v-icon>
                         </v-list-tile-action>

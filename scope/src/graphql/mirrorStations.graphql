@@ -1,0 +1,8 @@
+query {
+    mirrorStations {
+        name
+        mirrors {
+            name
+        }
+    }
+}
