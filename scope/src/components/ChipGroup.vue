@@ -7,7 +7,7 @@
         </div>
         <transition name="fade">
             <div v-if="expanded">
-                <v-chip v-for="d in data">{{d.name}}</v-chip>
+                <v-chip v-for="d in data" :key="d.name">{{d.name}}</v-chip>
             </div>
         </transition>
     </div>

@@ -11,7 +11,7 @@
                             <v-list-tile-title>镜像</v-list-tile-title>
                         </v-list-tile-content>
                     </v-list-tile>
-                    <v-list-tile @click="">
+                    <v-list-tile @click="$router.push('stations')">
                         <v-list-tile-action>
                             <v-icon>web</v-icon>
                         </v-list-tile-action>

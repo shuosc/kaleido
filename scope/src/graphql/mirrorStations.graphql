@@ -1,4 +1,4 @@
-query {
+query getMirrorStations {
     mirrorStations {
         name
         mirrors {
