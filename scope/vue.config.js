@@ -6,7 +6,11 @@ module.exports = {
             .use('gq-loader')
             .loader('gq-loader')
             .options({
-                url: 'http://localhost:8086/graphql'
+                url: 'http://' +
+                    (process.env.NODE_ENV === 'production'
+                        ? 'mirrors.rocks'
+                        : 'localhost') +
+                    ':8086/graphql'
             })
             .end()
     }

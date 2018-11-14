@@ -23,3 +23,7 @@ COPY ./*.sql /
 WORKDIR /
 CMD ./master
 EXPOSE 8086
+
+FROM nginx:1.15.6-alpine
+MAINTAINER longfangsong@icloud.com
+COPY ./scope/dist /usr/share/nginx/html

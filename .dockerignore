@@ -5,3 +5,4 @@
 /logfile
 /readme.md
 /scope
+!/scope/dist/
