@@ -178,10 +178,15 @@ func initMirrorStationIPRange() {
 }
 
 func InitAll() {
-	execSQLFile("./tables.sql")
-	execSQLFile("./data.sql")
-	initAreas()
-	initAreaDistance()
-	initMirrorStationIPRange()
-	println("DB init success!")
+	_, err := DB.DB.Query(`
+	SELECT * FROM mirrorstation;
+	`)
+	if err != nil {
+		execSQLFile("./tables.sql")
+		execSQLFile("./data.sql")
+		initAreas()
+		initAreaDistance()
+		initMirrorStationIPRange()
+		println("DB init success!")
+	}
 }

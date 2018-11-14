@@ -14,3 +14,12 @@ COPY --from=0 /go/src/kaleido/node/node /
 WORKDIR /
 CMD ./node
 EXPOSE 8080
+
+FROM alpine
+MAINTAINER longfangsong@icloud.com
+RUN apk update && apk add ca-certificates
+COPY --from=0 /go/src/kaleido/master/master /
+COPY ./*.sql /
+WORKDIR /
+CMD ./master
+EXPOSE 8086

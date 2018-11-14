@@ -1,28 +1,3 @@
-drop table webindexedmirrorstation;
-
-drop table jsonindexedmirrorstation;
-
-drop table area;
-
-drop table isp;
-
-drop table mirrorstation;
-
-drop table mirrorstation_mirror;
-
-drop table mirror;
-
-drop table area_area;
-
-drop table iprange_area_isp;
-
-drop table mirrorignore;
-
-drop table mirrorstation_iprange;
-
-drop table iprange;
-
-
 CREATE TABLE public.Mirror
 (
   id   bigserial PRIMARY KEY NOT NULL,
