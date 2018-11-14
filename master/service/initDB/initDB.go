@@ -3,143 +3,190 @@ package initDB
 import (
 	_ "database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
-	"kaleido/master/infrastructure"
+	"kaleido/master/DB"
+	"kaleido/master/model/Area"
+	"kaleido/master/model/IPRange"
+	"kaleido/master/model/ISP"
+	"kaleido/master/model/MirrorStation"
 	"math"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-func parsePage(url string) {
-	response, _ := http.Get(url)
-	doc, _ := goquery.NewDocumentFromReader(response.Body)
-	lastIndex := strings.LastIndex(url, "/i_")
-	ispName := url[lastIndex+3:]
-	cityName := ""
-	var cityId int
-	doc.Find(".list").Each(func(index int, selection *goquery.Selection) {
+type ispPageInfo struct {
+	Doc  *goquery.Document
+	Name string
+}
+
+func execSQLFile(path string) {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	requests := strings.Split(string(file), ";")
+	for _, request := range requests {
+		_, err := DB.DB.Exec(request)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func parseISPPage(pageInfo ispPageInfo) {
+	isp := ISP.New(pageInfo.Name)
+	var area Area.Area
+	pageInfo.Doc.Find(".list").Each(func(index int, selection *goquery.Selection) {
 		selection.Find("dd,dt").Each(func(_ int, selectedLine *goquery.Selection) {
 			selected := strings.Trim(selectedLine.Text(), " \n")
-			if selected == "" {
-
-			} else if strings.Contains(selected, ".") {
-				from := selectedLine.Find(".v_l").Text()
-				to := selectedLine.Find(".v_r").Text()
-				var ipRangeId int
-				row := infrastructure.DB.QueryRow(`
-				insert into iprange (ip) values (inet_merge($1,$2)) returning id;
-				`, from, to)
-				row.Scan(&ipRangeId)
-				infrastructure.DB.Exec(`
-				insert into iprange_area(iprange_id, area_id) values ($1,$2);
-				`, ipRangeId, cityId)
-			} else {
-				cityName = selected[:strings.Index(selected, "(")]
-				row := infrastructure.DB.QueryRow(`
-				insert into area (name,isp) values ($1,$2) returning id;
-				`, cityName, ispName)
-				println(ispName)
-				row.Scan(&cityId)
+			if selected != "" {
+				if strings.Contains(selected, ".") {
+					// is an IPRange
+					from := selectedLine.Find(".v_l").Text()
+					to := selectedLine.Find(".v_r").Text()
+					ipRange := IPRange.NewIPV4WithIPRange(from, to)
+					ipRange.SetAreaISP(area, isp)
+				} else {
+					// is name of a city
+					areaName := selected[:strings.Index(selected, "(")]
+					area = Area.GetOrCreate(areaName)
+				}
 			}
 		})
 	})
 }
 
-func InitIPArea() {
+func downloadISPPage(url string) ispPageInfo {
+	response, _ := http.Get(url)
+	doc, _ := goquery.NewDocumentFromReader(response.Body)
+	ispName := url[strings.LastIndex(url, "/i_")+3:]
+	return ispPageInfo{doc, ispName}
+}
+
+func initAreas() {
 	response, _ := http.Get("http://ipcn.chacuo.net")
 	doc, _ := goquery.NewDocumentFromReader(response.Body)
 	selection := doc.Find(".section_content > .list a")
-	ch := make(chan int, selection.Length())
+	channels := make(chan ispPageInfo, selection.Size())
 	selection.Map(func(index int, anchor *goquery.Selection) string {
-		go func(channel chan int, idx int) {
-			href, _ := anchor.Attr("href")
-			parsePage(href)
-			ch <- idx
-		}(ch, index)
+		href, _ := anchor.Attr("href")
+		go func(ch chan ispPageInfo) {
+			channels <- downloadISPPage(href)
+		}(channels)
 		return ""
 	})
-	for i := 0; i < selection.Length(); i++ {
-		<-ch
+	for i := 0; i < selection.Size(); i++ {
+		info := <-channels
+		parseISPPage(info)
 	}
-	println("init db ok")
+	// 部分IP段（尤其是镜像站的IP段）网页上查找不到
+	// 修复
+	iprange := IPRange.NewIPV4WithIPRange("202.141.160.0", "202.141.160.255")
+	area := Area.GetOrCreate("安徽")
+	isp := ISP.GetOrCreate("CHINANET")
+	iprange.SetAreaISP(area, isp)
+
+	iprange = IPRange.NewIPV4WithIPRange("40.73.103.0", "40.73.103.255")
+	area = Area.GetOrCreate("上海")
+	isp = ISP.GetOrCreate("UNICOM")
+	iprange.SetAreaISP(area, isp)
+
+	iprange = IPRange.NewIPV4WithIPRange("59.111.0.0", "59.111.0.255")
+	area = Area.GetOrCreate("浙江")
+	isp = ISP.GetOrCreate("CMNET")
+	iprange.SetAreaISP(area, isp)
 }
 
-func rad(degree float64) float64 {
-	return degree * math.Pi / 180.0
+func getAreaCoordinateURL(areaName string) string {
+	return "http://api.map.baidu.com/geocoder?address=" + areaName +
+		"&output=json&key=37492c0ee6f924cb5e934fa08c6b1676&city=北京市"
 }
 
-func distance(lat1 float64, lng1 float64, lat2 float64, lng2 float64) float64 {
-	radLat1 := rad(lat1)
-	radLat2 := rad(lat2)
-	a := math.Pow(math.Sin((radLat1-radLat2)/2), 2)
-	b := math.Cos(radLat1) * math.Cos(radLat2) * math.Pow(math.Sin((rad(lng1)-rad(lng2))/2), 2)
-	return 6378 * 2 * math.Asin(math.Sqrt(a+b))
+type coordinate struct {
+	Lng float64 `json:"lng"`
+	Lat float64 `json:"lat"`
 }
 
-func InitAreaDistance() {
-	placeCoordinate := map[string]struct {
-		Lng float64 `json:"lng"`
-		Lat float64 `json:"lat"`
-	}{}
-	rows, _ := infrastructure.DB.Query(`
-	select distinct name from area;
-	`)
-	for rows.Next() {
-		var areaName string
-		rows.Scan(&areaName)
-		response, _ := http.Get("http://api.map.baidu.com/geocoder?address=" + areaName +
-			"&output=json&key=37492c0ee6f924cb5e934fa08c6b1676&city=北京市")
-		body, _ := ioutil.ReadAll(response.Body)
-		var result struct {
-			Result struct {
-				Location struct {
-					Lng float64 `json:"lng"`
-					Lat float64 `json:"lat"`
-				} `json:"location"`
-			} `json:"result"`
+func initAreaDistance() {
+	areas, err := Area.All()
+	if err != nil {
+		panic("Unable to fetch all areas!")
+	}
+	areaCoordinate := fetchAreaCoordinates(areas)
+	for _, areaFrom := range areas {
+		for _, areaTo := range areas {
+			if areaFrom == areaTo {
+				Area.SetDistance(areaFrom, areaTo, 0)
+			} else {
+				fromCoordinate := areaCoordinate[areaFrom]
+				toCoordinate := areaCoordinate[areaTo]
+				distance := distance(fromCoordinate.Lng, fromCoordinate.Lat, toCoordinate.Lng, toCoordinate.Lat)
+				Area.SetDistance(areaFrom, areaTo, uint64(math.Ceil(distance)))
+			}
 		}
-		json.Unmarshal(body, &result)
-		placeCoordinate[areaName] = result.Result.Location
+	}
+}
+
+func fetchAreaCoordinates(areas []Area.Area) map[Area.Area]coordinate {
+	areaCoordinate := map[Area.Area]coordinate{}
+	var areaCoordinateMutex sync.Mutex
+	var wg sync.WaitGroup
+	for _, area := range areas {
+		wg.Add(1)
+		go func(area_ Area.Area) {
+			defer wg.Done()
+			name, _ := area_.GetName()
+			response, _ := http.Get(getAreaCoordinateURL(name))
+			body, _ := ioutil.ReadAll(response.Body)
+			var result struct {
+				Result struct {
+					Location coordinate `json:"location"`
+				} `json:"result"`
+			}
+			json.Unmarshal(body, &result)
+			areaCoordinateMutex.Lock()
+			defer areaCoordinateMutex.Unlock()
+			areaCoordinate[area_] = result.Result.Location
+		}(area)
 	}
 	// 填百度接口的坑
-	placeCoordinate["海南"] = struct {
-		Lng float64 `json:"lng"`
-		Lat float64 `json:"lat"`
-	}{Lng: 110.35, Lat: 20.02}
-	placeCoordinate["香港"] = struct {
-		Lng float64 `json:"lng"`
-		Lat float64 `json:"lat"`
-	}{Lng: 114.1, Lat: 22.2}
-	placeCoordinate["河南"] = struct {
-		Lng float64 `json:"lng"`
-		Lat float64 `json:"lat"`
-	}{Lng: 113.65, Lat: 34.76}
-	rows, _ = infrastructure.DB.Query(`
-	select *
-	from area, area as area_;
-	`)
-	for rows.Next() {
-		var fromId, toId uint64
-		var fromName, toName string
-		var fromISP, toISP string
-		rows.Scan(&fromId, &fromName, &fromISP, &toId, &toName, &toISP)
-		fromLocation := placeCoordinate[fromName]
-		toLocation := placeCoordinate[toName]
-		distance := distance(fromLocation.Lng, fromLocation.Lat, toLocation.Lng, toLocation.Lat)
-		if fromISP != toISP {
-			distance += 10
-		}
-		infrastructure.DB.Exec(`
-		insert into area_area (from_id, to_id, distance) VALUES ($1,$2,$3);
-		`, fromId, toId, uint64(math.Ceil(distance)))
-		fmt.Println(fromName, fromISP, "->", toName, toISP, ":", distance)
+	areaCoordinate[Area.GetOrCreate("海南")] = coordinate{Lng: 110.35, Lat: 20.02}
+	areaCoordinate[Area.GetOrCreate("香港")] = coordinate{Lng: 114.1, Lat: 22.2}
+	areaCoordinate[Area.GetOrCreate("河南")] = coordinate{Lng: 113.65, Lat: 34.76}
+	wg.Wait()
+	return areaCoordinate
+}
+
+func initMirrorStationIPRange() {
+	stations, err := MirrorStation.All()
+	if err != nil {
+		panic("Cannot get all stations!")
 	}
-	println("init distance ok")
+	for _, station := range stations {
+		url, err := station.GetURL()
+		if err != nil {
+			panic("Cannot get url!")
+		}
+		ips, err := net.LookupIP(url[strings.Index(url, "//")+2:])
+		for _, ip := range ips {
+			station.AddIPRange(ip.String())
+		}
+	}
 }
 
 func InitAll() {
-	InitIPArea()
-	InitAreaDistance()
+	_, err := DB.DB.Query(`
+	SELECT * FROM mirrorstation;
+	`)
+	if err != nil {
+		execSQLFile("./tables.sql")
+		execSQLFile("./data.sql")
+		initAreas()
+		initAreaDistance()
+		initMirrorStationIPRange()
+		println("DB init success!")
+	}
 }

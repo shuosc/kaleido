@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/robfig/cron"
 	"io/ioutil"
-	"kaleido/common/infrastructure"
-	"kaleido/common/service"
-	"kaleido/common/service/message"
+	"kaleido/common/iptools"
+	"kaleido/common/message"
+	"kaleido/common/oss"
 	"log"
 	"net/http"
 	"strings"
@@ -23,7 +23,7 @@ var mutex sync.RWMutex
 var spinNum uint32
 
 func fetchTable() {
-	props, err := infrastructure.Bucket.GetObjectMeta("kaleido-message-v2")
+	props, err := oss.Bucket.GetObjectMeta("kaleido-message")
 	if err != nil {
 		fmt.Println("Fetch Failed", err)
 		return
@@ -32,7 +32,7 @@ func fetchTable() {
 	if newUpdateTime != lastUpdateTime {
 		lastUpdateTime = newUpdateTime
 		fmt.Println(newUpdateTime)
-		object, _ := infrastructure.Bucket.GetObject("kaleido-message-v2")
+		object, _ := oss.Bucket.GetObject("kaleido-message")
 		buffer, _ := ioutil.ReadAll(object)
 		newMessage := KaleidoMessage.KaleidoMessage{}
 		proto.Unmarshal(buffer, &newMessage)
@@ -46,27 +46,27 @@ func fetchTable() {
 func GetRedirectToStation(mirror string, ip string) string {
 	mutex.RLock()
 	defer mutex.RUnlock()
-	table := message.Mirrors[mirror].AreaId_MirrorStationGroup
-	ipNumberForm := service.IPv4ToNumberForm(ip)
-	for mask := 32; mask >= 0; mask-- {
-		masked := service.MaskIP(ipNumberForm, uint8(mask))
-		if addressAreaID, ok := message.Mask_Address_AreaID[uint32(mask)]; ok {
-			if areaId, ok := addressAreaID.Address_AreaId[masked]; ok {
-				if areaId == 0 {
-					break
-				}
-				mirrorStationIdGroup := table[areaId].Stations
+	table := message.Mirrors[mirror].AreaISP_MirrorStationGroup
+	numberForm, err := iptools.IPv4ToNumberForm(ip)
+	if err == nil {
+		for mask := 32; mask >= 0; mask-- {
+			masked, err := iptools.MergedMaskedIPNumberform(numberForm, uint8(mask))
+			if err != nil {
+				continue
+			}
+			if areaISP, ok := message.Address_AreaISP[masked]; ok {
+				mirrorStationIdGroup := table[areaISP].Stations
 				mirrorStationId := mirrorStationIdGroup[spinNum%uint32(len(mirrorStationIdGroup))]
 				spinNum++
 				return message.MirrorStationId_Url[mirrorStationId]
 			}
 		}
 	}
-	return message.MirrorStationId_Url[message.Mirrors[mirror].DefaultMirrorStationId]
+	return message.MirrorStationId_Url[message.Mirrors[mirror].FallbackMirrorStationId]
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	from := r.Header["Remote_addr"][0]
+	from := r.Header.Get("Remote_addr")
 	if r.Header.Get("force-redirect-ip") != "" {
 		from = r.Header.Get("force-redirect-ip")
 	}

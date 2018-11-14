@@ -1,0 +1,22 @@
+syntax = "proto3";
+package KaleidoMessage;
+
+message MirrorStationGroup {
+    repeated uint64 Stations = 1;
+}
+
+message Mirror {
+    uint64 FallbackMirrorStationId = 1;
+    // (AreaId << 32 | ISPId) -> MirrorStationGroup
+    map<uint64, MirrorStationGroup> AreaISP_MirrorStationGroup = 2;
+}
+
+
+message KaleidoMessage {
+    // Mirror.name -> Mirror
+    map<string, Mirror> Mirrors = 1;
+    // (mask(ip,mask) << 32 | mask) -> (AreaId << 32 | ISPId)
+    map<uint64, uint64> Address_AreaISP = 2;
+    // MirrorStation.id -> MirrorStation.URL
+    map<uint64, string> MirrorStationId_Url = 3;
+}
