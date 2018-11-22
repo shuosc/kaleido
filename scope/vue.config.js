@@ -9,8 +9,8 @@ module.exports = {
                 url: 'http://' +
                     (process.env.NODE_ENV === 'production'
                         ? 'mirrors.rocks'
-                        : 'localhost') +
-                    ':8086/graphql'
+                        : 'localhost:8086') +
+                    '/graphql'
             })
             .end()
     }

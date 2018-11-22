@@ -1,19 +1,21 @@
-version: '3'
+version: '3.1'
 services:
   db:
     image: 'postgres:10-alpine'
     environment:
-    - POSTGRES_USER: kaleido
-    - POSTGRES_PASSWORD: !CHANGE_THIS_WHEN_DEPLOY!
+      POSTGRES_USER: kaleido
+      POSTGRES_PASSWORD: !SECRET!
     restart: always
+    expose:
+    - "5432"
 
   master:
     image: 'longfangsong/kaleido-master:0.0.4'
     environment:
-    - CONNSTR: 'postgres://kaleido:!CHANGE_THIS_WHEN_DEPLOY!@db/kaleido?sslmode=disable'
-    - OSS_END_POINT: oss-cn-hangzhou.aliyuncs.com
-    - OSS_ACCESS_KEY: LTAIhRAdblzkbQPm
-    - OSS_ACCESS_SECRET: !CHANGE_THIS_WHEN_DEPLOY!
+      CONNSTR: 'host=db port=5432 user=kaleido password=!SECRET! dbname=kaleido sslmode=disable'
+      OSS_END_POINT: oss-cn-hangzhou.aliyuncs.com
+      OSS_ACCESS_KEY: LTAIhRAdblzkbQPm
+      OSS_ACCESS_SECRET: !SECRET!
     restart: always
     ports:
     - "8086:8086"
@@ -21,14 +23,14 @@ services:
   node:
     image: 'longfangsong/kaleido-node:0.0.5'
     environment:
-    - OSS_END_POINT: oss-cn-hangzhou.aliyuncs.com
-    - OSS_ACCESS_KEY: LTAIhRAdblzkbQPm
-    - OSS_ACCESS_SECRET: !CHANGE_THIS_WHEN_DEPLOY!
+      OSS_END_POINT: oss-cn-hangzhou.aliyuncs.com
+      OSS_ACCESS_KEY: LTAIhRAdblzkbQPm
+      OSS_ACCESS_SECRET: !SECRET!
     restart: always
     network_mode: 'host'
 
   frontend:
     image: 'longfangsong/kaleido-frontend'
     restart: always
-    ports:
-    - "80:8080"
+    expose:
+    - "80"
