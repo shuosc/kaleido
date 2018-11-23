@@ -28,4 +28,4 @@ FROM nginx:1.15.6-alpine
 MAINTAINER longfangsong@icloud.com
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./scope/dist /usr/share/nginx/html
-CMD ["nginx","-c /etc/nginx/nginx.conf"]
+CMD ["nginx","-g daemon off;"]
