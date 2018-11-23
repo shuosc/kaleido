@@ -144,8 +144,16 @@ func uploadTable() {
 	if err != nil {
 		log.Println(err)
 	}
-	err = oss.Bucket.PutObject("kaleido-message", bytes.NewBuffer(data))
-	if err != nil {
-		log.Println(err)
+	for i := 0; i < 5; i++ {
+		err = oss.Bucket.PutObject("kaleido-message", bytes.NewBuffer(data))
+		if err != nil {
+			if i != 4 {
+				log.Println(err, "retrying")
+			} else {
+				log.Println("Give up")
+			}
+		} else {
+			break
+		}
 	}
 }
