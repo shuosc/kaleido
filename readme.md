@@ -8,9 +8,9 @@
 
 ## How to use
 
-将对应的官方源的URL中的域名改成mirrors.rocks即可。
+将对应的官方源的URL中的域名改成mirrors.rocks:8080即可。
 
-以Ubuntu为例，更改`/etc/apt/sources.list`文件中Ubuntu 默认的源地址 <http://archive.ubuntu.com/> 为 http://mirrors.rocks 即可。
+以Ubuntu为例，更改`/etc/apt/sources.list`文件中Ubuntu 默认的源地址 <http://archive.ubuntu.com/> 为 http://mirrors.rocks:8080 即可。
 
 ⚠️：暂时没有HTTPS的支持，对于有些镜像（如pip）请强制允许使用http协议。
 
